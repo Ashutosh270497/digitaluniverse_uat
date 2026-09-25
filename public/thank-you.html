@@ -3,16 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Thank You | Digital Universe</title>
+    <title>Audit Request Status | Digital Universe Pro</title>
+    <meta name="robots" content="noindex, nofollow" />
     <style>
       :root {
-        --bg: #0c1224;
+        --bg: #17180f;
         --panel: rgba(255, 255, 255, 0.06);
         --panel-border: rgba(255, 255, 255, 0.1);
         --text: #ffffff;
-        --muted: #c6cedd;
-        --accent: #f5b400;
-        --accent-strong: #e49a00;
+        --muted: #d8d8cc;
+        --accent: #ffd400;
+        --accent-strong: #e7c000;
       }
 
       * {
@@ -63,7 +64,7 @@
         border-radius: 999px;
         border: 1px solid rgba(245, 180, 0, 0.3);
         background: rgba(245, 180, 0, 0.08);
-        color: #ffd364;
+        color: #ffe44a;
         font-weight: 700;
         font-size: 14px;
       }
@@ -104,9 +105,15 @@
         transform: translateY(-1px);
       }
 
+      .btn:focus-visible,
+      .contact-box a:focus-visible {
+        outline: 3px solid #ffe44a;
+        outline-offset: 4px;
+      }
+
       .btn-primary {
         background: linear-gradient(90deg, var(--accent), var(--accent-strong));
-        color: #fff;
+        color: var(--bg);
         box-shadow: 0 16px 30px rgba(245, 180, 0, 0.28);
       }
 
@@ -127,7 +134,7 @@
       .contact-box strong {
         display: block;
         margin-bottom: 10px;
-        color: #ffd364;
+        color: #ffe44a;
         letter-spacing: 0.12em;
         font-size: 12px;
       }
@@ -136,6 +143,24 @@
         display: block;
         color: var(--muted);
         line-height: 1.8;
+      }
+
+      .contact-box a {
+        display: block;
+        color: var(--muted);
+        line-height: 1.8;
+        text-underline-offset: 3px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
       }
 
       @media (min-width: 640px) {
@@ -151,30 +176,30 @@
   </head>
   <body>
     <main class="card">
-      <div class="icon">✓</div>
-      <div class="badge">Request Submitted Successfully</div>
-      <h1>Thank You</h1>
+      <div class="icon" aria-hidden="true">!</div>
+      <div class="badge">Submission Status Unavailable</div>
+      <h1>Return to the audit form</h1>
       <p>
-        Your details have been submitted successfully. Our team will review your request
-        and contact you shortly with the next steps for your Amazon growth plan.
+        This legacy page cannot confirm that a request was delivered. A request is received
+        only when the audit form displays confirmation after the delivery service responds successfully.
       </p>
 
       <div class="actions">
         <a
           class="btn btn-primary"
-          href="https://wa.me/916387104378?text=Hello,%20I%20just%20submitted%20the%20form%20and%20want%20to%20discuss%20my%20Amazon%20growth%20plan."
+          href="https://wa.me/916387104378?text=Hello,%20I%20would%20like%20to%20discuss%20a%20free%20Amazon%20audit."
           target="_blank"
           rel="noopener noreferrer"
         >
-          Chat on WhatsApp
+          Contact on WhatsApp
         </a>
         <a class="btn btn-secondary" href="./">Back to Landing Page</a>
       </div>
 
       <div class="contact-box">
         <strong>DIRECT CONTACT</strong>
-        <span>+91 63871 04378</span>
-        <span>Gautamsoni4422@gmail.com</span>
+        <a href="tel:+916387104378">+91 63871 04378</a>
+        <a href="mailto:support@digitaluniversepro.co">support@digitaluniversepro.co</a>
       </div>
     </main>
   </body>

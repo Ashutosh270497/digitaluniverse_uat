@@ -1,0 +1,191 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run check",
+  "outputDirectory": "dist",
+  "trailingSlash": false,
+  "functions": {
+    "api/leads.js": {
+      "maxDuration": 15
+    }
+  },
+  "redirects": [
+    {
+      "source": "/amazon-management",
+      "destination": "/amazon-account-management",
+      "permanent": true
+    },
+    {
+      "source": "/index.html",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/amazon-ppc-management/index.html",
+      "destination": "/amazon-ppc-management",
+      "permanent": true
+    },
+    {
+      "source": "/amazon-account-management/index.html",
+      "destination": "/amazon-account-management",
+      "permanent": true
+    },
+    {
+      "source": "/amazon-listing-optimization/index.html",
+      "destination": "/amazon-listing-optimization",
+      "permanent": true
+    },
+    {
+      "source": "/amazon-a-plus-content/index.html",
+      "destination": "/amazon-a-plus-content",
+      "permanent": true
+    },
+    {
+      "source": "/amazon-global-selling/index.html",
+      "destination": "/amazon-global-selling",
+      "permanent": true
+    },
+    {
+      "source": "/case-studies/index.html",
+      "destination": "/case-studies",
+      "permanent": true
+    },
+    {
+      "source": "/about/index.html",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/contact/index.html",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/privacy-policy/index.html",
+      "destination": "/privacy-policy",
+      "permanent": true
+    },
+    {
+      "source": "/terms-of-service/index.html",
+      "destination": "/terms-of-service",
+      "permanent": true
+    },
+    {
+      "source": "/cookie-policy/index.html",
+      "destination": "/cookie-policy",
+      "permanent": true
+    },
+    {
+      "source": "/case-studies/template/index.html",
+      "destination": "/case-studies/template",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/amazon-ppc-management",
+      "destination": "/amazon-ppc-management/index.html"
+    },
+    {
+      "source": "/amazon-account-management",
+      "destination": "/amazon-account-management/index.html"
+    },
+    {
+      "source": "/amazon-listing-optimization",
+      "destination": "/amazon-listing-optimization/index.html"
+    },
+    {
+      "source": "/amazon-a-plus-content",
+      "destination": "/amazon-a-plus-content/index.html"
+    },
+    {
+      "source": "/amazon-global-selling",
+      "destination": "/amazon-global-selling/index.html"
+    },
+    {
+      "source": "/case-studies",
+      "destination": "/case-studies/index.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about/index.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact/index.html"
+    },
+    {
+      "source": "/privacy-policy",
+      "destination": "/privacy-policy/index.html"
+    },
+    {
+      "source": "/terms-of-service",
+      "destination": "/terms-of-service/index.html"
+    },
+    {
+      "source": "/cookie-policy",
+      "destination": "/cookie-policy/index.html"
+    },
+    {
+      "source": "/case-studies/template",
+      "destination": "/case-studies/template/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": ".*\\.vercel\\.app"
+        }
+      ],
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}
