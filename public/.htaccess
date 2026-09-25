@@ -1,0 +1,46 @@
+Options -Indexes
+DirectoryIndex index.html
+DirectorySlash Off
+
+ErrorDocument 404 /404.html
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "-[A-Za-z0-9_-]{8,}\.(js|css|webp|png|jpe?g|svg)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+RewriteEngine On
+
+# One canonical protocol and hostname.
+RewriteCond %{HTTPS} !=on [OR]
+RewriteCond %{HTTP_HOST} !^digitaluniversepro\.co$ [NC]
+RewriteRule ^ https://digitaluniversepro.co%{REQUEST_URI} [R=301,L,NE]
+
+# Consolidate the legacy Amazon management URL.
+RewriteRule ^amazon-management/?$ /amazon-account-management [R=301,L,NE]
+
+# Remove index.html from public URLs.
+RewriteCond %{THE_REQUEST} \s/+(.*/)?index\.html[\s?] [NC]
+RewriteRule ^(.*/)?index\.html$ /$1 [R=301,L,NE]
+
+# Use slashless canonical URLs, except for the site root.
+RewriteCond %{REQUEST_URI} !^/$
+RewriteCond %{REQUEST_URI} /$
+RewriteRule ^(.+?)/$ /$1 [R=301,L,NE]
+
+# Serve each Vite multi-page entry without exposing its physical index.html file.
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_FILENAME}/index.html -f
+RewriteRule ^(.+)$ $1/index.html [L]

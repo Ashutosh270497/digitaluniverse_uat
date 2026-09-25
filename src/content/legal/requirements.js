@@ -1,0 +1,30 @@
+export const LEGAL_REQUIREMENTS = Object.freeze({
+  privacy: Object.freeze([
+    'Legal entity or data-controller name and verified business or registered address',
+    'Categories of personal data collected and the purpose for each use',
+    'Applicable lawful bases or consent approach',
+    'Confirmed data processors and subprocessors, including forms, hosting, analytics, and communications providers',
+    'Data retention and deletion periods',
+    'Data-subject rights and the verified request process',
+    'International transfer locations and safeguards, if applicable',
+    'Effective date and the contact responsible for privacy requests',
+  ]),
+  terms: Object.freeze([
+    'Effective date and last-updated date',
+    'Full contracting legal entity name and entity type',
+    'Verified registered or principal business address',
+    'Arbitration seat and venue, including city and state in India',
+    'Court jurisdiction for interim relief, enforcement, and non-arbitrable matters',
+    'Explicit business and legal approval of the six-month paid-service liability cap and INR 10,000 free-Website-use liability cap',
+    'Final review confirming that the Website Terms align with the proposal, Client Agreement, Data Processing Agreement, and actual operating practices',
+  ]),
+  cookie: Object.freeze([
+    'Complete cookie and browser-storage inventory',
+    'Provider, purpose, category, and duration for each technology',
+    'Confirmed analytics, advertising, embedded-content, and form technologies',
+    'Consent mechanism and which technologies are blocked before consent',
+    'Instructions for withdrawing or changing consent',
+    'Third-party policy links',
+    'Effective date and cookie-policy contact',
+  ]),
+});

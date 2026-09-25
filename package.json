@@ -7,15 +7,27 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "test": "node --test tests/unit/*.test.js tests/integration/*.test.js tests/architecture/*.test.js",
+    "integration:verify": "node scripts/audits/release-integration-audit.mjs",
+    "responsive:verify": "node scripts/audits/responsive-audit.mjs",
+    "coverage:verify": "node scripts/audits/global-coverage-audit.mjs",
+    "ai:verify": "node scripts/audits/ai-services-audit.mjs",
+    "calculator:verify": "node scripts/audits/calculator-audit.mjs",
+    "seo:verify": "node scripts/audits/verify-seo-build.mjs",
     "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "check": "npm run lint && npm run type-check && npm test && npm run build && npm run seo:verify && npm run deployment:verify",
+    "deployment:verify": "node scripts/audits/verify-deployment.mjs",
+    "security:check": "npm audit --audit-level=low",
+    "hero:verify": "node scripts/audits/hero-motion-audit.mjs"
   },
   "dependencies": {
-    "framer-motion": "^12.25.0",
+    "d3-geo": "^3.1.1",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -26,10 +38,14 @@
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "gh-pages": "^6.3.0",
     "globals": "^16.5.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.1",
     "vite": "^7.2.4"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

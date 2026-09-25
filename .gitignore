@@ -8,9 +8,15 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.vercel
 dist
 dist-ssr
+artifacts/
+dist.zip
 *.local
+.env
+.env.*
+!.env.example
 
 # Editor directories and files
 .vscode/*
