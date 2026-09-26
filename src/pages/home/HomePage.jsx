@@ -33,7 +33,7 @@ function HomePage() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
   return (
-    <div className="home-page min-h-screen overflow-x-hidden bg-white">
+    <div className="home-page min-h-screen overflow-x-clip bg-white">
       <SkipLink />
       <StickyHeader />
       <main id="main-content">
