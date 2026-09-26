@@ -147,25 +147,19 @@ export const getVerifiedMetrics = (group?: string): readonly BusinessMetric[] =>
   );
 
 
-// Authorized for marketing by the business, supplied by the founder on 2026-09-25.
-// These are founder-reported figures, not independently audited case-study results.
-// The business confirmed dollars; the reporting period and success-rate definition
-// have not been supplied. Do not relabel these as annual results or a guarantee.
+// Authorized marketing highlights, revised by the business on 2026-09-26.
+// These are reported figures, not independently audited case-study results.
+// The reporting period has not been supplied. Do not relabel these as annual
+// results or a guarantee.
 export const FOUNDER_PERFORMANCE = {
   source: 'Founder-reported agency performance',
-  reportedOn: '2026-09-25',
+  reportedOn: '2026-09-26',
   reportingPeriod: null,
-  successRateDefinition: null,
   metrics: [
-    { id: 'revenue', value: '$10M+', label: 'Revenue generated' },
-    { id: 'sellers', value: '500+', label: 'Sellers managed' },
-    { id: 'ad-spend', value: '$5M+', label: 'Ad spend managed' },
-    { id: 'units', value: '1M+', label: 'Units sold' },
-  ],
-  supporting: [
-    { id: 'categories', value: '30+', label: 'Categories managed' },
-    { id: 'experience', value: '5 years', label: 'Experience' },
-    { id: 'success', value: '95%', label: 'Reported success rate' },
+    { id: 'brands-sellers', value: '50+', label: 'Brands & Sellers Supported' },
+    { id: 'categories', value: '15+', label: 'Amazon Categories' },
+    { id: 'marketplaces', value: '5+', label: 'Global Amazon Marketplaces' },
+    { id: 'experience', value: '5+ Years', label: 'Combined Amazon Experience' },
   ],
   regions: ['Europe', 'North America', 'Asia'],
   marketplace: 'Amazon across multiple countries',

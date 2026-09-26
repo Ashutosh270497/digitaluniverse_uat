@@ -16,8 +16,8 @@ export const PRIMARY_CTA_LABEL = getCroValue(
   'label',
   CRO_DEFAULTS.primaryCtaLabel,
 );
-export const SECONDARY_CTA_LABEL = 'Explore Our Services';
-export const SECONDARY_CTA_HREF = '#services';
+export const SECONDARY_CTA_LABEL = 'Explore Our SPN Page';
+export const SECONDARY_CTA_HREF = '/amazon-spn';
 
 export const prefersReducedMotion = (windowObject = globalThis.window) =>
   Boolean(windowObject?.matchMedia?.('(prefers-reduced-motion: reduce)').matches);

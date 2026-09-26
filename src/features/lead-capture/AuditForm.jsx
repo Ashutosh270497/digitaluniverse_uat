@@ -1,5 +1,5 @@
 import { ArrowRight, CalendarDays, CheckCircle2, LoaderCircle, MessageCircle } from 'lucide-react';
-import { CONTACT_METHODS, MONTHLY_REVENUE_OPTIONS } from '../../../shared/leadSchema.js';
+import { CONTACT_METHODS, REVENUE_CURRENCIES, getMonthlyRevenueOptions } from '../../../shared/leadSchema.js';
 import { LEAD_FUNNEL_CONFIG } from './config.js';
 import { PRIMARY_AUDIT_FIRST_FIELD_ID, PRIMARY_AUDIT_FORM_ID, PRIMARY_CTA_LABEL } from './primaryCta.js';
 import { ANALYTICS_EVENTS, trackAnalyticsEvent, trackContactClick } from '../../analytics/index.js';
@@ -64,8 +64,8 @@ const AuditForm = ({ formLocation = 'unspecified' }) => {
         </div>
       ) : (
         <>
-          <h2 className="text-2xl font-bold tracking-tight text-amazon-dark">Request your free Amazon audit</h2>
-          <p className="mt-2 text-gray-600">Share your account. Let’s find your next opportunity.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-amazon-dark">Get Your Free Amazon Growth Audit</h2>
+          <p className="mt-2 text-gray-600">Share your contact details and revenue range. We&apos;ll help identify opportunities to improve your Amazon visibility, conversion and sales.</p>
 
           <form
             id={PRIMARY_AUDIT_FORM_ID}
@@ -174,68 +174,55 @@ const AuditForm = ({ formLocation = 'unspecified' }) => {
               )}
             </fieldset>
 
-            <div>
-              <label htmlFor={fieldIds.amazonUrl} className="block text-sm font-extrabold text-gray-800">
-                Amazon store or ASIN URL <span aria-hidden="true">*</span>
-              </label>
-              <input
-                type="url"
-                inputMode="url"
-                id={fieldIds.amazonUrl}
-                name="amazonUrl"
-                autoComplete="url"
-                autoCapitalize="none"
-                spellCheck="false"
-                enterKeyHint="next"
-                required
-                value={formData.amazonUrl}
-                onChange={handleFieldChange}
-                aria-invalid={Boolean(errors.amazonUrl)}
-                aria-describedby={getDescribedBy(
-                  'primary-audit-amazon-url-hint',
-                  errors.amazonUrl ? 'primary-audit-amazon-url-error' : '',
-                )}
-                className={inputClass(errors.amazonUrl)}
-              />
-              <p id="primary-audit-amazon-url-hint" className="mt-1.5 text-sm text-gray-600">
-                Your Amazon store or product link (HTTPS).
-              </p>
-              {errors.amazonUrl && (
-                <p id="primary-audit-amazon-url-error" className="mt-1.5 text-sm font-semibold text-red-700">{errors.amazonUrl}</p>
-              )}
-            </div>
-
             {collectMonthlyRevenue && (
-              <div>
-              <label htmlFor={fieldIds.monthlyRevenue} className="block text-sm font-extrabold text-gray-800">
-                Monthly Amazon revenue range <span aria-hidden="true">*</span>
-              </label>
-              <select
-                id={fieldIds.monthlyRevenue}
-                name="monthlyRevenue"
-                required
-                value={formData.monthlyRevenue}
-                onChange={handleFieldChange}
-                aria-invalid={Boolean(errors.monthlyRevenue)}
-                aria-describedby={getDescribedBy(
-                  'primary-audit-monthly-revenue-hint',
-                  errors.monthlyRevenue ? 'primary-audit-monthly-revenue-error' : '',
-                )}
-                className={inputClass(errors.monthlyRevenue)}
-              >
-                <option value="">Select the closest range</option>
-                {MONTHLY_REVENUE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-              <p id="primary-audit-monthly-revenue-hint" className="mt-1.5 text-sm text-gray-600">
-                Select the approximate US-dollar range.
-              </p>
-              {errors.monthlyRevenue && (
-                <p id="primary-audit-monthly-revenue-error" className="mt-1.5 text-sm font-semibold text-red-700">
-                  {errors.monthlyRevenue}
-                </p>
-              )}
+              <div className="space-y-4">
+                <fieldset aria-describedby={errors.revenueCurrency ? 'primary-audit-currency-error' : undefined}>
+                  <legend className="text-sm font-extrabold text-gray-800">Revenue currency <span aria-hidden="true">*</span></legend>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {REVENUE_CURRENCIES.map(currency => (
+                      <label key={currency.code} className="relative cursor-pointer">
+                        <input
+                          type="radio"
+                          id={`primary-audit-currency-${currency.code.toLowerCase()}`}
+                          name="revenueCurrency"
+                          value={currency.code}
+                          checked={formData.revenueCurrency === currency.code}
+                          onChange={handleFieldChange}
+                          required
+                          aria-invalid={Boolean(errors.revenueCurrency)}
+                          aria-describedby={errors.revenueCurrency ? 'primary-audit-currency-error' : undefined}
+                          className="peer sr-only"
+                        />
+                        <span className="flex min-h-12 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-2 py-3 text-sm font-bold text-gray-700 transition-colors peer-checked:border-primary-700 peer-checked:bg-primary-100 peer-checked:text-primary-900 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-700">
+                          <span aria-hidden="true">{currency.symbol}</span>{currency.code}<span className="sr-only"> — {currency.label}</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  {errors.revenueCurrency && <p id="primary-audit-currency-error" className="mt-1.5 text-sm font-semibold text-red-700">{errors.revenueCurrency}</p>}
+                </fieldset>
+                <div>
+                  <label htmlFor={fieldIds.monthlyRevenue} className="block text-sm font-extrabold text-gray-800">
+                    Monthly Amazon revenue range <span aria-hidden="true">*</span>
+                  </label>
+                  <select
+                    id={fieldIds.monthlyRevenue}
+                    name="monthlyRevenue"
+                    required
+                    value={formData.monthlyRevenue}
+                    onChange={handleFieldChange}
+                    aria-invalid={Boolean(errors.monthlyRevenue)}
+                    aria-describedby={getDescribedBy('primary-audit-monthly-revenue-hint', errors.monthlyRevenue ? 'primary-audit-monthly-revenue-error' : '')}
+                    className={inputClass(errors.monthlyRevenue)}
+                  >
+                    <option value="">Select the closest range</option>
+                    {getMonthlyRevenueOptions(formData.revenueCurrency).map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  </select>
+                  <p id="primary-audit-monthly-revenue-hint" className="mt-1.5 text-sm text-gray-600" aria-live="polite">
+                    Select your approximate monthly revenue in {formData.revenueCurrency}. Choose a new range when switching currencies.
+                  </p>
+                  {errors.monthlyRevenue && <p id="primary-audit-monthly-revenue-error" className="mt-1.5 text-sm font-semibold text-red-700">{errors.monthlyRevenue}</p>}
+                </div>
               </div>
             )}
 

@@ -5,7 +5,7 @@ import AmazonTrustBar from './sections/AmazonTrustBar.jsx';
 import SelectedClientBrands from './sections/SelectedClientBrands.jsx';
 import Stats from './sections/Stats.jsx';
 import Services from './sections/Services.jsx';
-import AIServices from './sections/AIServices.jsx';
+import { AI_SERVICES_ROUTE } from '../../config/routes.js';
 import GlobalCoverageSection from '../../features/global-coverage/GlobalCoverageSection.jsx';
 import RealClientDashboards from './sections/RealClientDashboards.jsx';
 import WorkingProcess from './sections/WorkingProcess.jsx';
@@ -22,6 +22,10 @@ function HomePage() {
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (!hash) return undefined;
+    if (hash.startsWith('ai-')) {
+      window.location.replace(`${AI_SERVICES_ROUTE}#${hash}`);
+      return undefined;
+    }
     // Lazy route rendering happens after the browser's initial fragment lookup.
     const frame = window.requestAnimationFrame(() => {
       document.getElementById(hash)?.scrollIntoView({ block: 'start', behavior: 'instant' });
@@ -38,7 +42,6 @@ function HomePage() {
         <SelectedClientBrands />
         <Stats />
         <Services />
-        <AIServices />
         <RealClientDashboards />
         <GrowthCalculatorSection />
         <WorkingProcess />

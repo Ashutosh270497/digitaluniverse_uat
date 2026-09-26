@@ -10,7 +10,6 @@ const requestedComponentOrder = [
   '<SelectedClientBrands />',
   '<Stats />',
   '<Services />',
-  '<AIServices />',
   '<RealClientDashboards />',
   '<GrowthCalculatorSection />',
   '<WorkingProcess />',
@@ -36,14 +35,14 @@ test('homepage renders the requested semantic section order', async () => {
   assert.match(source, /<\/main>/);
   assert.doesNotMatch(
     source,
-    /UrgencyBanner|WhyChooseUs|IsItWorthIt|BookConsultation|DrayaAISection|ContactForm|WhatsAppFAB|FloatingElements/,
+    /AIServices|data-ai-service|UrgencyBanner|WhyChooseUs|IsItWorthIt|BookConsultation|DrayaAISection|ContactForm|WhatsAppFAB|FloatingElements/,
   );
 });
 
 test('primary navigation exposes every requested anchor', () => {
   assert.deepEqual(PRIMARY_NAV_ITEMS, [
     { label: 'Amazon Services', href: '#services' },
-    { label: 'AI Services', href: '#ai-services' },
+    { label: 'AI Services', href: '/ai-services' },
     { label: 'Results', href: '#sales-snapshots' },
     { label: 'Process', href: '#process' },
     { label: 'About', href: '#about' },
@@ -54,13 +53,13 @@ test('primary navigation exposes every requested anchor', () => {
 
 test('every primary navigation anchor has a rendered section target', async () => {
   const sectionSources = await Promise.all(
-    ['Services.jsx', 'AIServices.jsx', 'RealClientDashboards.jsx', 'WorkingProcess.jsx', 'MeetTheExpert.jsx', 'FAQ.jsx'].map(
+    ['Services.jsx', 'RealClientDashboards.jsx', 'WorkingProcess.jsx', 'MeetTheExpert.jsx', 'FAQ.jsx'].map(
       (filename) => readFile(new URL(`../../src/pages/home/sections/${filename}`, import.meta.url), 'utf8'),
     ),
   );
   const renderedTargets = sectionSources.join('\n');
 
-  for (const item of PRIMARY_NAV_ITEMS) {
+  for (const item of PRIMARY_NAV_ITEMS.filter(item => item.href.startsWith('#'))) {
     const sectionId = item.href.slice(1);
     assert.match(
       renderedTargets,

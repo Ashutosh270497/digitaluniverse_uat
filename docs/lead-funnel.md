@@ -44,8 +44,9 @@ The approved destination receives a JSON POST containing:
 - `name`
 - `contactMethod` (`email` or `whatsapp`)
 - `contact`
-- `amazonStoreOrAsinUrl`
 - `monthlyAmazonRevenueRange`
+- `monthlyAmazonRevenueCurrency` (`USD`, `INR` or `GBP`)
+- `monthlyAmazonRevenueRangeLabel` (the localized range shown in the form)
 
 The spam honeypot, form-start timestamp, rate-limit IP key, and authorization token
 are never forwarded. The application contains no lead-value logging.
@@ -54,8 +55,11 @@ are never forwarded. The application contains no lead-value logging.
 
 - The client and server use the same field schema.
 - Email and WhatsApp formats are validated according to the selected contact method.
-- Amazon links must use HTTPS and an Amazon or `amzn.to` hostname with a non-root path.
-- Revenue must match one of the published ranges.
+- The form no longer collects an Amazon URL. Retired `amazonUrl` payload values are ignored and never forwarded.
+- Currency must be explicitly supplied as USD, INR or GBP. Revenue must match a range for that currency.
+- USD/GBP bands use 10,000, 50,000 and 200,000 boundaries; INR bands use ₹1,00,000, ₹5,00,000 and ₹20,00,000. These are qualification bands, not live exchange-rate conversions.
+- Switching currency clears a monetary range so it cannot silently acquire a different meaning. The non-monetary “Not selling on Amazon yet” answer is retained.
+- The approved revenue-field experiment omits both currency controls and the range; no revenue fields are forwarded when no range is supplied.
 - Server requests must use POST JSON objects and remain at or below 10,000 UTF-8 bytes.
 - Lead responses are never cached. HTTP redirects are not followed when sending personal data.
 - Browser requests time out after 15 seconds; the upstream webhook defaults to an 8-second timeout. No automatic retries send duplicate leads. A timeout cannot establish whether the destination received the request.
@@ -69,7 +73,7 @@ with a shared rate-limit service before high-volume traffic.
 
 ## Success flow
 
-1. The browser validates the four requested fields.
+1. The browser validates name, contact method/contact, revenue currency and the matching revenue range.
 2. The browser sends JSON to the lead API using POST.
 3. The server repeats validation and applies origin, spam, size, and rate-limit checks.
 4. The server sends the normalized lead to the configured webhook.
@@ -93,9 +97,9 @@ with a shared rate-limit service before high-volume traffic.
 2. Configure server variables in a staging serverless/API environment. Do not put the webhook token in a `VITE_` variable.
 3. If the API is separate, set `VITE_LEAD_API_URL` and add the website origin to `LEAD_ALLOWED_ORIGINS`.
 4. Build and serve the website against that staging API.
-5. Submit with every field empty; confirm four field errors and focus on Name.
+5. Submit with every field empty; confirm errors for Name, Contact and Revenue range (USD is initially selected) and focus on Name.
 6. Enter an invalid work email; confirm the contact error remains associated with the field.
-7. Enter a non-Amazon or non-HTTPS URL; confirm it is rejected.
+7. Switch between USD, INR and GBP; confirm the options update, a monetary selection clears, and each submitted currency/range pair reaches the webhook with its localized label.
 8. Select WhatsApp, enter a valid number with country code, and submit with the Enter key.
 9. Force the webhook to return an error; confirm the form shows failure and no receipt confirmation.
 10. Restore the webhook and submit a unique valid lead; confirm the CRM receives exactly one JSON payload and the success screen appears.

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Cpu, Mail, MessageCircle } from 'lucide-react';
+import { AI_SERVICES_ROUTE } from '../../config/routes.js';
 import { AI_SERVICES } from '../../content/aiServices.ts';
 import { AI_CONTACT_ID, getAiEmailHref, getAiWhatsAppUrl } from './inquiry.js';
 import { trackContactClick } from '../../analytics/index.js';
@@ -28,7 +29,7 @@ const AIProjectInquiry = ({ requestedService }) => {
           <p className="eyebrow flex items-center gap-2"><Cpu className="h-4 w-4" aria-hidden="true" />Let’s build something useful</p>
           <h2 id="ai-project-heading" className="section-title">Tell us about your AI project.</h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-gray-600">Whether you have an idea, a repetitive workflow or an existing product to improve, start with a conversation about your business.</p>
-          <a href="/#ai-services" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded text-sm font-bold text-primary-800 underline underline-offset-4">Explore all AI services<ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
+          <a href={AI_SERVICES_ROUTE} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded text-sm font-bold text-primary-800 underline underline-offset-4">Explore all AI services<ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
         </div>
         <div className="rounded-2xl border border-primary-200 bg-white p-6 shadow-sm md:p-8">
           <label htmlFor="ai-project-service" className="block text-sm font-bold text-amazon-dark">What would you like to explore?</label>

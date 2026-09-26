@@ -1,6 +1,6 @@
 # AI services and yellow theme — 25 September 2026
 
-Implements the six services and visual direction supplied in the three AI reference screenshots. The homepage now has a dedicated AI section immediately after Amazon Services, reachable from the main navigation, hero, footer and About page.
+Implements the six services and visual direction supplied in the three AI reference screenshots. The six services now live on the standalone `/ai-services` page, reachable from the main navigation, hero, footer and About page. The homepage remains focused on Amazon services. Old homepage AI fragment URLs redirect to the matching fragment on the new page.
 
 ## Content and design
 
@@ -28,7 +28,7 @@ Changing the selection updates WhatsApp and email links with the chosen service.
 | Responsibility | File |
 | --- | --- |
 | Service copy and capabilities | `src/content/aiServices.ts` |
-| Homepage section | `src/pages/home/sections/AIServices.jsx` |
+| Standalone page | `src/pages/ai-services/AIServicesPage.jsx` |
 | Illustration and card styles | `src/features/ai-services/AICapabilitiesVisual.jsx`, `ai-services.css` |
 | Contact selector and link helpers | `src/features/ai-services/AIProjectInquiry.jsx`, `inquiry.js` |
 | Brand colors | `tailwind.config.js` |

@@ -3,66 +3,42 @@ export const CONTACT_METHODS = Object.freeze({
   whatsapp: 'whatsapp',
 });
 
-export const MONTHLY_REVENUE_OPTIONS = Object.freeze([
-  Object.freeze({ value: 'not-selling-yet', label: 'Not selling on Amazon yet' }),
-  Object.freeze({ value: 'under-10k', label: 'Under US$10,000' }),
-  Object.freeze({ value: '10k-50k', label: 'US$10,000–US$50,000' }),
-  Object.freeze({ value: '50k-200k', label: 'US$50,000–US$200,000' }),
-  Object.freeze({ value: '200k-plus', label: 'US$200,000+' }),
+export const REVENUE_CURRENCIES = Object.freeze([
+  Object.freeze({ code: 'USD', symbol: '$', label: 'US Dollar', locale: 'en-US' }),
+  Object.freeze({ code: 'INR', symbol: '₹', label: 'Indian Rupee', locale: 'en-IN' }),
+  Object.freeze({ code: 'GBP', symbol: '£', label: 'British Pound', locale: 'en-GB' }),
 ]);
 
-const revenueValues = new Set(MONTHLY_REVENUE_OPTIONS.map((option) => option.value));
+// These are local-currency qualification bands, not exchange-rate conversions.
+const revenueRanges = {
+  USD: [['under-10k', null, 10000], ['10k-50k', 10000, 50000], ['50k-200k', 50000, 200000], ['200k-plus', 200000, null]],
+  INR: [['under-1l', null, 100000], ['1l-5l', 100000, 500000], ['5l-20l', 500000, 2000000], ['20l-plus', 2000000, null]],
+  GBP: [['under-10k', null, 10000], ['10k-50k', 10000, 50000], ['50k-200k', 50000, 200000], ['200k-plus', 200000, null]],
+};
+
+export const getMonthlyRevenueOptions = (currencyCode) => {
+  const currency = REVENUE_CURRENCIES.find(item => item.code === currencyCode);
+  if (!currency) return [];
+  const money = new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code, maximumFractionDigits: 0 });
+  return [
+    { value: 'not-selling-yet', label: 'Not selling on Amazon yet' },
+    ...revenueRanges[currency.code].map(([value, min, max]) => ({
+      value,
+      label: min === null ? `Under ${money.format(max)}` : max === null ? `${money.format(min)}+` : `${money.format(min)}–${money.format(max)}`,
+    })),
+  ];
+};
+
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const whatsappPattern = /^\+?[1-9]\d{7,14}$/;
-const amazonMarketplaceDomains = [
-  'amazon.ae',
-  'amazon.ca',
-  'amazon.cn',
-  'amazon.co.jp',
-  'amazon.co.uk',
-  'amazon.co.za',
-  'amazon.com',
-  'amazon.com.au',
-  'amazon.com.be',
-  'amazon.com.br',
-  'amazon.com.mx',
-  'amazon.com.tr',
-  'amazon.de',
-  'amazon.eg',
-  'amazon.es',
-  'amazon.fr',
-  'amazon.ie',
-  'amazon.in',
-  'amazon.it',
-  'amazon.nl',
-  'amazon.pl',
-  'amazon.sa',
-  'amazon.se',
-  'amazon.sg',
-];
-
 const asTrimmedString = (value) => (typeof value === 'string' ? value.trim() : '');
-
-export const isAmazonUrl = (value) => {
-  try {
-    const url = new URL(value);
-    const hostname = url.hostname.toLowerCase();
-    const isAmazonHost = amazonMarketplaceDomains.some(
-      (domain) => hostname === domain || hostname.endsWith(`.${domain}`),
-    ) || hostname === 'amzn.to';
-
-    return value.length <= 2_048 && url.protocol === 'https:' && isAmazonHost && url.pathname.length > 1;
-  } catch {
-    return false;
-  }
-};
 
 export const validateLeadPayload = (payload = {}, { requireMonthlyRevenue = true } = {}) => {
   const data = {
     name: asTrimmedString(payload.name),
     contactMethod: asTrimmedString(payload.contactMethod),
     contact: asTrimmedString(payload.contact),
-    amazonUrl: asTrimmedString(payload.amazonUrl),
+    revenueCurrency: asTrimmedString(payload.revenueCurrency),
     monthlyRevenue: asTrimmedString(payload.monthlyRevenue),
   };
   const errors = {};
@@ -91,16 +67,15 @@ export const validateLeadPayload = (payload = {}, { requireMonthlyRevenue = true
     errors.contact = 'Choose email or WhatsApp as your contact method.';
   }
 
-  if (!data.amazonUrl) {
-    errors.amazonUrl = 'Enter your Amazon store or ASIN URL.';
-  } else if (!isAmazonUrl(data.amazonUrl)) {
-    errors.amazonUrl = 'Enter a valid HTTPS Amazon store or ASIN URL.';
+  const currencyIsValid = REVENUE_CURRENCIES.some(currency => currency.code === data.revenueCurrency);
+  if ((requireMonthlyRevenue || data.monthlyRevenue || data.revenueCurrency) && !currencyIsValid) {
+    errors.revenueCurrency = 'Choose USD, INR or GBP for your revenue range.';
   }
 
-  if (requireMonthlyRevenue && !revenueValues.has(data.monthlyRevenue)) {
+  if (requireMonthlyRevenue && !data.monthlyRevenue) {
     errors.monthlyRevenue = 'Select your monthly Amazon revenue range.';
-  } else if (data.monthlyRevenue && !revenueValues.has(data.monthlyRevenue)) {
-    errors.monthlyRevenue = 'Select a valid monthly Amazon revenue range.';
+  } else if (data.monthlyRevenue && currencyIsValid && !getMonthlyRevenueOptions(data.revenueCurrency).some(option => option.value === data.monthlyRevenue)) {
+    errors.monthlyRevenue = 'Select a valid revenue range for your chosen currency.';
   }
 
   return {

@@ -5,7 +5,7 @@ import { SITE_CONFIG } from '../../config/site.js';
 const internalLinks = [
   ['Amazon PPC', MARKETING_ROUTES.amazonPpcManagement.path],
   ['Account Management', MARKETING_ROUTES.amazonAccountManagement.path],
-  ['AI Services', '/#ai-services'],
+  ['AI Services', MARKETING_ROUTES.aiServices.path],
   ['Results', '/case-studies'],
   ['About', MARKETING_ROUTES.about.path],
   ['Contact', MARKETING_ROUTES.contact.path],

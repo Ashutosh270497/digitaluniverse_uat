@@ -36,8 +36,8 @@ const createEnvironment = ({ reducedMotion = false, includeForm = true, includeF
 
 test('uses one canonical CTA label and hero-form target', () => {
   assert.equal(PRIMARY_CTA_LABEL, 'Request My Free Amazon Audit');
-  assert.equal(SECONDARY_CTA_LABEL, 'Explore Our Services');
-  assert.equal(SECONDARY_CTA_HREF, '#services');
+  assert.equal(SECONDARY_CTA_LABEL, 'Explore Our SPN Page');
+  assert.equal(SECONDARY_CTA_HREF, '/amazon-spn');
   assert.equal(PRIMARY_AUDIT_FORM_ID, 'primary-audit-form');
   assert.equal(PRIMARY_AUDIT_FIRST_FIELD_ID, 'primary-audit-name');
   assert.equal(PRIMARY_AUDIT_ROUTE, '/contact#primary-audit-form');

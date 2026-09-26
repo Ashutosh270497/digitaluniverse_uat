@@ -17,6 +17,20 @@ export interface ServiceDefinition {
   primaryOutcome: string;
   relevantCaseStudySlug: string | null;
   spnServiceKey: SpnServiceKey | null;
+  pageContent?: ServicePageContent;
+}
+
+export interface ServicePageContent {
+  audienceLabel?: string;
+  spnHeading?: string;
+  problemsHeading?: string;
+  outcomeHeading?: string;
+  outcomeBenefits?: readonly string[];
+  deliverablesHeading?: string;
+  deliverableGroups?: readonly { title: string; items: readonly string[] }[];
+  clientInvolvementHeading?: string;
+  strategy?: { title: string; description: string; ctaLabel: string };
+  processSteps?: readonly Pick<ProcessStep, 'number' | 'title' | 'description'>[];
 }
 
 export interface ProcessStep {
@@ -45,74 +59,191 @@ export interface FaqItem {
   answer: string;
 }
 
+const PPC_DELIVERABLE_GROUPS = [
+  {
+    title: 'Campaign Management',
+    items: [
+      'Sponsored Products campaign management',
+      'Sponsored Brands campaign management',
+      'Sponsored Display campaign management',
+    ],
+  },
+  {
+    title: 'Keyword & Search Term Optimisation',
+    items: ['Keyword research', 'Search-term analysis', 'Negative keyword management', 'Match-type optimisation'],
+  },
+  {
+    title: 'Bid & Budget Optimisation',
+    items: ['Bid adjustments', 'Budget allocation', 'Placement optimisation'],
+  },
+  {
+    title: 'Performance Monitoring',
+    items: ['ACOS/TACoS monitoring', 'Conversion analysis', 'Campaign performance reviews', 'Ongoing optimisation'],
+  },
+] as const;
+
+const PPC_PAGE_CONTENT: ServicePageContent = {
+  audienceLabel: "Who it's for:",
+  spnHeading: 'Explore Our Amazon Services →',
+  problemsHeading: 'Common Amazon PPC Challenges We Solve',
+  outcomeHeading: 'What You Can Expect',
+  outcomeBenefits: [
+    'Better budget allocation',
+    'More efficient keyword and search-term targeting',
+    'Improved campaign visibility',
+    'Ongoing performance optimisation',
+  ],
+  deliverablesHeading: "What's Included in Our PPC Management",
+  deliverableGroups: PPC_DELIVERABLE_GROUPS,
+  clientInvolvementHeading: 'What We Need From You',
+  strategy: {
+    title: 'A Strategy Built Around Your Account',
+    description: 'Every Amazon account is different. We review your products, margins, competition, existing campaigns and growth objectives before defining the right PPC strategy.',
+    ctaLabel: 'Request Your PPC Audit',
+  },
+  processSteps: [
+    {
+      number: '01',
+      title: 'Account Audit',
+      description: 'Review your ASINs, campaigns, search terms, account health and current PPC performance.',
+    },
+    {
+      number: '02',
+      title: 'Strategy & Campaign Plan',
+      description: 'Identify optimisation opportunities and create a structured PPC action plan.',
+    },
+    {
+      number: '03',
+      title: 'Implementation & Optimisation',
+      description: 'Apply campaign, keyword, bid, budget and targeting changes based on the agreed strategy.',
+    },
+    {
+      number: '04',
+      title: 'Reporting & Continuous Optimisation',
+      description: 'Monitor performance, identify opportunities and continuously optimise campaigns based on account data.',
+    },
+  ],
+};
+
+const ACCOUNT_DELIVERABLE_GROUPS = [
+  {
+    title: 'Account Health',
+    items: [
+      'Account-health monitoring and priority issue tracking',
+      'Policy and performance-related issue coordination',
+      'Account status reviews',
+    ],
+  },
+  {
+    title: 'Seller Support',
+    items: [
+      'Seller Support case coordination',
+      'Follow-up on open cases',
+      'Documentation and escalation support',
+    ],
+  },
+  {
+    title: 'Catalogue & Operations',
+    items: [
+      'Catalogue issue coordination',
+      'Listing/variation issue support',
+      'Operational task tracking',
+    ],
+  },
+  {
+    title: 'Account Priorities',
+    items: [
+      'Regular account reviews',
+      'Priority-based action planning',
+      'Performance and operational updates',
+    ],
+  },
+] as const;
+
+const ACCOUNT_PAGE_CONTENT: ServicePageContent = {
+  audienceLabel: "Who it's for:",
+  problemsHeading: 'Common Amazon Account Challenges We Solve',
+  outcomeHeading: 'What You Can Expect',
+  outcomeBenefits: [
+    'Faster identification of account issues',
+    'Structured Seller Support coordination',
+    'Better tracking of operational priorities',
+    'Regular attention to account health and catalogue issues',
+  ],
+  deliverablesHeading: "What's Included in Amazon Account Management",
+  deliverableGroups: ACCOUNT_DELIVERABLE_GROUPS,
+  clientInvolvementHeading: 'What We Need From You',
+  strategy: {
+    title: 'Account Management Built Around Your Priorities',
+    description: 'Every Amazon account has different operational requirements. We review your account structure, current issues, catalogue and business priorities before defining the right support scope.',
+    ctaLabel: 'Discuss Your Account',
+  },
+};
+
 export const SERVICES: readonly ServiceDefinition[] = [
   {
     id: 'amazon-ppc-profitability',
     title: 'Amazon PPC and profitability management',
     summary:
-      'Campaign decisions tied to agreed advertising-efficiency and margin inputs, not sales volume alone.',
+      'Strategic Sponsored Products, Sponsored Brands and Sponsored Display campaigns designed to improve visibility, control ad spend and grow profitable sales.',
     whoItIsFor:
-      'Established sellers running Sponsored Ads who need tighter control over search terms, bids, budgets, ACoS, and TACoS.',
+      'Established Amazon sellers looking to improve PPC efficiency, reduce wasted ad spend and scale profitable campaigns.',
     problemsSolved: [
-      'Wasted spend from weak targeting or unmanaged search terms',
-      'Campaign structures that make budget and performance difficult to interpret',
-      'Advertising decisions made without agreed margin or inventory context',
+      'Wasted ad spend from irrelevant or low-performing search terms',
+      'Campaign structures that make optimisation and performance analysis difficult',
+      'Inefficient bids and budgets across campaigns',
+      'Limited visibility into ACOS, TACoS and conversion performance',
     ],
-    deliverables: [
-      'PPC account diagnosis covering campaign structure, targeting, bids, budgets, and search terms',
-      'Prioritised optimisation backlog against client-approved ACoS, TACoS, and margin targets',
-      'Campaign changes and budget allocation within the written scope',
-      'Performance summary based on available Amazon Ads and Seller Central data',
-    ],
+    deliverables: PPC_DELIVERABLE_GROUPS.flatMap((group) => group.items),
     reportingCadence: null,
     expectedClientInvolvement: [
-      'Provide margin or landed-cost inputs and approve commercial targets',
-      'Approve media budgets and material campaign changes',
-      'Share inventory, promotion, pricing, and product-priority changes',
+      'Access to Seller Central / advertising account',
+      'Current margins and target profitability',
+      'Product priorities and campaign objectives',
+      'Relevant pricing, promotions and inventory information',
     ],
     notIncluded: null,
     primaryOutcome:
-      'More deliberate ad-spend allocation against documented profitability and growth targets.',
+      'More control over ad spend, clearer campaign performance and a structured optimisation process focused on profitable growth.',
     relevantCaseStudySlug: null,
     spnServiceKey: 'advertising',
+    pageContent: PPC_PAGE_CONTENT,
   },
   {
     id: 'account-management-health',
     title: 'Account management and account health',
     summary:
-      'A documented operating rhythm for account-health issues, Seller Support cases, and agreed account priorities.',
+      'End-to-end Amazon account support covering account health, Seller Support coordination, catalogue management and day-to-day operational priorities.',
     whoItIsFor:
-      'Brands that need a clear operating owner for Amazon account tasks, issue tracking, and day-to-day coordination.',
+      'Brands and sellers who need reliable Amazon account support, issue resolution and ongoing operational management.',
     problemsSolved: [
       'Account-health alerts and operational issues without clear ownership',
-      'Seller Support cases that are not tracked to a documented next action',
-      'Competing account priorities with no shared delivery backlog',
+      'Seller Support cases that remain unresolved or require repeated follow-up',
+      'Catalogue and account issues affecting day-to-day operations',
+      'Important account tasks without structured tracking or follow-through',
     ],
-    deliverables: [
-      'Account-health review and prioritised issue register',
-      'Action, dependency, and Seller Support case tracker',
-      'Coordination of agreed account-management tasks',
-      'Written status of open issues, owners, and next actions',
-    ],
+    deliverables: ACCOUNT_DELIVERABLE_GROUPS.flatMap((group) => group.items),
     reportingCadence: null,
     expectedClientInvolvement: [
-      'Grant the Seller Central permissions agreed for the scope',
-      'Supply requested business, identity, compliance, or product documents',
-      'Respond to approvals and Amazon requests that require the account owner',
+      'Required Seller Central permissions/access',
+      'Brand, product and account information',
+      'Relevant business documents when required',
+      'Approval for actions that require account-owner confirmation',
     ],
     notIncluded: null,
     primaryOutcome:
-      'Clear ownership and follow-through for the account priorities included in the engagement.',
+      'Clear ownership and structured follow-through across your Amazon account priorities, helping you stay organised and respond to issues efficiently.',
     relevantCaseStudySlug: null,
     spnServiceKey: 'accountManagement',
+    pageContent: ACCOUNT_PAGE_CONTENT,
   },
   {
     id: 'listing-seo-catalog',
     title: 'Listing SEO and catalog optimisation',
     summary:
-      'Accurate, search-aligned product detail pages supported by a structured catalog issue backlog.',
+      'Optimised titles, bullet points, descriptions and backend keywords built around relevant search terms and conversion-focused content.',
     whoItIsFor:
-      'Brands with listings that are difficult to discover, inconsistent, suppressed, or unclear to shoppers.',
+      'For brands and sellers whose products are difficult to discover, underperforming in search or need stronger listing content.',
     problemsSolved: [
       'Titles, bullets, and descriptions that do not communicate the product clearly',
       'Catalog attributes, variations, or suppression issues that need investigation',
@@ -135,6 +266,7 @@ export const SERVICES: readonly ServiceDefinition[] = [
       'Clearer, more accurate listings aligned with relevant Amazon search behaviour.',
     relevantCaseStudySlug: null,
     spnServiceKey: 'cataloging',
+    pageContent: { audienceLabel: "Who it's for:" },
   },
   {
     id: 'brand-content-storefront',
@@ -310,12 +442,12 @@ export const ENGAGEMENT_TERMS: readonly EngagementTerm[] = [
 ];
 
 export const FAQ_ITEMS: readonly FaqItem[] = [
-  { id: 'audit-scope', question: 'What does the free Amazon audit cover?', answer: 'The audit focuses on advertising efficiency, listing quality, account health and marketplace opportunities. Share your store or ASIN and priorities so the review can focus on your account.' },
+  { id: 'audit-scope', question: 'What does the free Amazon audit cover?', answer: 'The audit focuses on advertising efficiency, listing quality, account health and marketplace opportunities. Start with your contact details and revenue range. The team can request your store link and account priorities during follow-up.' },
   { id: 'marketplace-coverage', question: 'Which Amazon marketplaces do you support?', answer: 'We support brands across Amazon marketplaces in Europe, North America and Asia. Tell us your current and target marketplaces so we can discuss the support and scope you need.' },
   { id: 'services', question: 'Can I get help with just one part of my account?', answer: 'Yes. You can discuss PPC, account management, listing optimization, A+ content, product launches or marketplace expansion. Your proposal sets out the work included.' },
   { id: 'start-time', question: 'What happens after I request an audit?', answer: 'The team reviews the account details you share and contacts you using your selected method. You can then discuss priorities, scope and next steps.' },
   { id: 'seller-central-access', question: 'Do I need to share my Amazon password?', answer: 'Do not send passwords or sensitive account credentials through this website. Any account access needed for an engagement should be agreed separately, including the required permissions and who can authorize them.' },
   { id: 'pricing', question: 'How do I find out the price and engagement terms?', answer: 'Contact us with your account and the services you need. Ask for a written proposal covering fees, advertising spend, deliverables, reporting, the engagement period and cancellation terms before work begins.' },
-  { id: 'ai-solutions', question: 'Can you help with AI beyond Amazon?', answer: 'Yes. Our AI services cover custom agents, AI-enabled SaaS, knowledge systems, workflow automation, strategy and AI infrastructure. Tell us about your tools, business needs and the process or product you want to improve.' },
+  { id: 'revenue-currency', question: 'Which currency can I use for my revenue range?', answer: 'Choose US dollars (USD), Indian rupees (INR) or British pounds (GBP) in the audit form, then select the closest monthly Amazon revenue range. Ranges are in the currency you select; they are not exchange-rate conversions.' },
   { id: 'growth-calculator', question: 'Are the calculator results a guarantee?', answer: 'No. The calculator models a scenario using your monthly revenue, ad spend and an editable additional-revenue multiplier. It totals that scenario over your chosen period. The revenue-to-spend ratio is not profit ROI, and actual results will depend on your business and the work agreed.' },
 ];

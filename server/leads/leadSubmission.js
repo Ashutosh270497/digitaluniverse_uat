@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { validateLeadPayload } from '../../shared/leadSchema.js';
+import { getMonthlyRevenueOptions, validateLeadPayload } from '../../shared/leadSchema.js';
 
 const MAX_BODY_BYTES = 10_000;
 const MIN_FORM_COMPLETION_MS = 500;
@@ -251,9 +251,12 @@ export const handleLeadSubmission = async (
         name: validation.data.name,
         contactMethod: validation.data.contactMethod,
         contact: validation.data.contact,
-        amazonStoreOrAsinUrl: validation.data.amazonUrl,
         ...(validation.data.monthlyRevenue
-          ? { monthlyAmazonRevenueRange: validation.data.monthlyRevenue }
+          ? {
+            monthlyAmazonRevenueRange: validation.data.monthlyRevenue,
+            monthlyAmazonRevenueCurrency: validation.data.revenueCurrency,
+            monthlyAmazonRevenueRangeLabel: getMonthlyRevenueOptions(validation.data.revenueCurrency).find(option => option.value === validation.data.monthlyRevenue).label,
+          }
           : {}),
         ...(leadExperiment ? { croExperiment: leadExperiment } : {}),
       }),

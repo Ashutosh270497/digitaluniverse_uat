@@ -1,5 +1,5 @@
-import { ArrowRight, ExternalLink, Quote, ShieldCheck } from 'lucide-react';
-import { SITE_CONFIG } from '../../../config/site.js';
+import { ArrowRight, Quote } from 'lucide-react';
+import { AmazonPartnerBadges } from '../../../components/ui/AmazonPartnerBadge.jsx';
 import { getVerifiedMetrics, METRIC_SCOPE_LABELS } from '../../../content/businessMetrics.ts';
 import {
   getFeaturedClientBrands,
@@ -56,18 +56,8 @@ const CompactConversionProof = () => (
             {PRIMARY_CTA_LABEL}
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </button>
-          <a
-            href={SITE_CONFIG.amazonAdsPartnerUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-primary-700 px-6 py-4 font-extrabold text-primary-800 hover:bg-primary-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-700"
-          >
-            <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-            Amazon Ads Verified Partner
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            <span className="sr-only"> (opens in a new tab)</span>
-          </a>
         </div>
+        <AmazonPartnerBadges className="mt-6" />
       </div>
 
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-7">

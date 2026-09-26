@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { AlertTriangle, ArrowRight, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ArrowRight } from 'lucide-react';
+import AmazonPartnerBadge from '../../components/ui/AmazonPartnerBadge.jsx';
 import { SITE_CONFIG } from '../../config/site.js';
 import {
   CASE_STUDY_METRIC_KEYS,
@@ -134,15 +135,13 @@ const CaseStudyDetailPage = ({ caseStudy = null, template = false }) => {
               ? 'This route defines the evidence and content required for a future indexable case-study page. It contains no invented client result.'
               : caseStudy?.verification.disclosure}
           </p>
-          <a
+          <AmazonPartnerBadge
+            kind="spn"
             href={SITE_CONFIG.spnLinks.accountManagement}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-7 inline-flex items-center gap-2 rounded font-extrabold text-primary-300 underline decoration-primary-500 underline-offset-4 hover:text-primary-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
-          >
-            View Amazon SPN India Account Management listing
-            <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
+            label="India · Account Management"
+            compact
+            className="mt-7"
+          />
         </div>
       </section>
 
@@ -158,7 +157,7 @@ const CaseStudyDetailPage = ({ caseStudy = null, template = false }) => {
             <h2 id="detail-audit-heading" className="text-2xl font-black text-amazon-dark">
               Request an evidence-led Amazon account review
             </h2>
-            <p className="mt-2 text-gray-700">Start with the four-field audit form on the homepage.</p>
+            <p className="mt-2 text-gray-700">Start with the audit form on the homepage.</p>
           </div>
           <a
             href={PRIMARY_AUDIT_ROUTE}

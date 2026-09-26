@@ -17,7 +17,7 @@ const FAQ = () => {
         <div className="home-faq-intro">
           <p className="eyebrow">A few useful answers</p>
           <h2 id="faq-heading" className="section-title">Questions before<br className="hidden lg:block" /> you get started?</h2>
-          <p className="mt-5 text-base leading-relaxed text-gray-600">From your first Amazon audit to a new AI project, here’s what to know.</p>
+          <p className="mt-5 text-base leading-relaxed text-gray-600">Practical answers about Amazon services, account access and your next steps.</p>
           <div className="faq-contact-card">
             <MessageCircle className="h-6 w-6 text-primary-800" aria-hidden="true" />
             <h3>Let’s talk about your business.</h3>
