@@ -1,10 +1,21 @@
 import { LEGAL_PATHS } from './routes.js';
 
 export const SPN_SERVICES = [
-  { key: 'accountManagement', label: 'Account Management', ref: 'sc_spn_blst_bdt-aa773aa8' },
-  { key: 'advertising', label: 'Advertising Optimization', ref: 'sc_spn_alst_adt-aa773aa8' },
-  { key: 'enhancedBrandContent', label: 'Enhanced Brand Content', ref: 'sc_spn_ebclst_ebcdt-aa773aa8' },
+  { key: 'accountManagement', label: 'Account Management', path: 'gspn', ref: 'sc_gspn_blst_bdt-aa773aa8' },
+  { key: 'advertising', label: 'Advertising Optimization', path: 'gspn', ref: 'sc_gspn_alst_adt-aa773aa8' },
+  { key: 'cataloging', label: 'Cataloguing', path: 'gspn', ref: 'sc_gspn_clst_cdt-aa773aa8' },
+  { key: 'enhancedBrandContent', label: 'Enhanced Brand Content', path: 'tsba', ref: 'sc_spn_ebclst_ebcdt-aa773aa8' },
 ];
+
+export const SPN_INDIA_SERVICES = [
+  { key: 'accountManagement', label: 'Account Management', directoryLabel: 'Account Management', ref: 'sc_gspn_blst_bdt-aa773aa8' },
+  { key: 'advertising', label: 'Advertising', directoryLabel: 'Advertising Optimization', ref: 'sc_gspn_alst_adt-aa773aa8' },
+  { key: 'cataloging', label: 'Cataloging', directoryLabel: 'Cataloguing', ref: 'sc_gspn_clst_cdt-aa773aa8' },
+  { key: 'enhancedBrandContent', label: 'Enhanced Brand Content', directoryLabel: 'Enhanced Brand Content', ref: 'sc_gspn_ebclst_ebcdt-aa773aa8' },
+].map(service => ({
+  ...service,
+  url: `https://sellercentral.amazon.in/gspn/provider-details/${encodeURIComponent(service.directoryLabel)}/aa773aa8-2399-4069-a240-31cf2a209a5d?ref_=${service.ref}&localeSelection=en_US&sellFrom=IN&sellIn=IN`,
+}));
 
 const spnRegions = [
   { code: 'US', label: 'USA' },
@@ -12,10 +23,12 @@ const spnRegions = [
   { code: 'IN', label: 'India' },
 ].map((region) => ({
   ...region,
-  links: Object.fromEntries(SPN_SERVICES.map((service) => [
-    service.key,
-    `https://sellercentral.amazon.in/tsba/provider-details/${encodeURIComponent(service.label)}/aa773aa8-2399-4069-a240-31cf2a209a5d?ref_=${service.ref}&localeSelection=en_US&sellFrom=${region.code}&sellIn=${region.code}`,
-  ])),
+  links: region.code === 'IN'
+    ? Object.fromEntries(SPN_INDIA_SERVICES.map(service => [service.key, service.url]))
+    : Object.fromEntries(SPN_SERVICES.map((service) => [
+      service.key,
+      `https://sellercentral.amazon.in/${service.path}/provider-details/${encodeURIComponent(service.label)}/aa773aa8-2399-4069-a240-31cf2a209a5d?ref_=${service.ref}&localeSelection=en_US&sellFrom=${region.code}&sellIn=${region.code}`,
+    ])),
 }));
 
 export const SITE_CONFIG = {
@@ -56,20 +69,14 @@ export const SITE_CONFIG = {
   amazonAdsPartnerUrl:
     'https://advertising.amazon.com/partners/directory/details/amzn1.ads1.ma1.6l6hpvsylhggfceurmgxhx6k0/DIGITAL-UNIVERSE?sref_=suggestion',
   spnRegions,
-  // Existing single-market links refer explicitly to India. Cataloguing is
-  // retained from the previous site; no replacement was supplied for it.
+  // Single-market links use the founder-supplied India GSPN listings.
   spnLinks: {
     ...spnRegions.find((region) => region.code === 'IN').links,
-    cataloging:
-      'https://sellercentral.amazon.in/gspn/provider-details/Cataloguing/aa773aa8-2399-4069-a240-31cf2a209a5d?ref_=sc_gspn_clst_cdt-aa773aa8&localeSelection=en_US&sellFrom=IN&sellIn=IN',
   },
   legalLinks: LEGAL_PATHS,
 };
 
 export const getSpnServiceLinks = (serviceKey) => {
-  if (serviceKey === 'cataloging') {
-    return [{ code: 'IN', label: 'India', url: SITE_CONFIG.spnLinks.cataloging }];
-  }
   return SITE_CONFIG.spnRegions
     .filter((region) => region.links[serviceKey])
     .map((region) => ({ code: region.code, label: region.label, url: region.links[serviceKey] }));

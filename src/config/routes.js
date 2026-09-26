@@ -2,8 +2,12 @@ export const HOME_ROUTE = '/';
 export const PRIMARY_SERVICE_INQUIRY = '/contact';
 export const CASE_STUDIES_ROUTE = '/case-studies';
 export const CASE_STUDY_TEMPLATE_ROUTE = '/case-studies/template';
+export const AI_SERVICES_ROUTE = '/ai-services';
+export const AMAZON_SPN_ROUTE = '/amazon-spn';
 
 export const MARKETING_ROUTES = Object.freeze({
+  aiServices: Object.freeze({ key: 'aiServices', path: AI_SERVICES_ROUTE, kind: 'ai-services' }),
+  amazonSpn: Object.freeze({ key: 'amazonSpn', path: AMAZON_SPN_ROUTE, kind: 'amazon-spn' }),
   amazonPpcManagement: Object.freeze({
     key: 'amazonPpcManagement',
     path: '/amazon-ppc-management',

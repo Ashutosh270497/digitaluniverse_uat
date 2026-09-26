@@ -42,7 +42,8 @@ test('the canonical form keeps labels, mobile keyboard hints, and announced erro
   assert.match(source, /aria-invalid=/);
   assert.match(source, /role=\{status === 'error' \? 'alert' : 'status'\}/);
   assert.match(source, /inputMode=\{contactIsWhatsApp \? 'tel' : 'email'\}/);
-  assert.match(source, /inputMode="url"/);
+  assert.doesNotMatch(source, /name="amazonUrl"|inputMode="url"/);
+  assert.match(source, /name="revenueCurrency"/);
   assert.match(source, /enterKeyHint="next"/);
 });
 

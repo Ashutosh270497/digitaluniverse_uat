@@ -5,6 +5,8 @@ import { SITE_CONFIG } from '../config/site.js';
 
 const HomePage = lazy(() => import('../pages/home/HomePage.jsx'));
 const ServicePage = lazy(() => import('../pages/services/ServicePage.jsx'));
+const AIServicesPage = lazy(() => import('../pages/ai-services/AIServicesPage.jsx'));
+const SpnPage = lazy(() => import('../pages/spn/SpnPage.jsx'));
 const AboutPage = lazy(() => import('../pages/about/AboutPage.jsx'));
 const ContactPage = lazy(() => import('../pages/contact/ContactPage.jsx'));
 const CaseStudiesPage = lazy(() => import('../pages/case-studies/CaseStudiesPage.jsx'));
@@ -44,6 +46,8 @@ const RouteView = ({ pathname, requestedService }) => {
     case 'legal': page = <LegalNoticePage route={currentRoute.route} />; break;
     case 'marketing':
       if (currentRoute.route.kind === 'service') page = <ServicePage route={currentRoute.route} />;
+      else if (currentRoute.route.kind === 'ai-services') page = <AIServicesPage />;
+      else if (currentRoute.route.kind === 'amazon-spn') page = <SpnPage />;
       else if (currentRoute.route.kind === 'about') page = <AboutPage />;
       else page = <ContactPage requestedService={requestedService} />;
       break;

@@ -1,5 +1,6 @@
 import { Facebook, Instagram, Linkedin, Mail, Phone, Youtube } from 'lucide-react';
 import logo from '../../assets/brand_logos/logo.jpg';
+import { AmazonPartnerBadges } from '../ui/AmazonPartnerBadge.jsx';
 import { getHomepageHref, PRIMARY_NAV_ITEMS } from '../../config/navigation.js';
 import { MARKETING_ROUTES } from '../../config/routes.js';
 import { SITE_CONFIG, getMailtoHref, getTelHref } from '../../config/site.js';
@@ -15,7 +16,8 @@ const serviceLinks = [
   ['Listing Optimization', MARKETING_ROUTES.amazonListingOptimization.path],
   ['A+ & Brand Content', MARKETING_ROUTES.amazonAPlusContent.path],
   ['Global Selling', MARKETING_ROUTES.amazonGlobalSelling.path],
-  ['AI Solutions', '/#ai-services'],
+  ['Amazon SPN Listings', MARKETING_ROUTES.amazonSpn.path],
+  ['AI Solutions', MARKETING_ROUTES.aiServices.path],
 ];
 
 const socialIconMap = {
@@ -63,6 +65,7 @@ const Footer = () => (
               );
             })}
           </div>
+          <AmazonPartnerBadges className="mt-6" />
         </div>
 
         <div>

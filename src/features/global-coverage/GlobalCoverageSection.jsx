@@ -1,5 +1,7 @@
 import { Component, lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { ArrowRight, Check, ExternalLink, Globe2, Pause, Play, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check, ExternalLink, Globe2, Pause, Play } from 'lucide-react';
+import AmazonPartnerBadge from '../../components/ui/AmazonPartnerBadge.jsx';
+import { revealAmazonSpnDirectory } from '../../components/ui/amazonPartnerNavigation.js';
 import { VERIFIED_MARKETPLACE_LOCATIONS } from '../../content/marketplaceCoverage.ts';
 import { SITE_CONFIG, SPN_SERVICES } from '../../config/site.js';
 import { PRIMARY_AUDIT_ROUTE } from '../lead-capture/primaryCta.js';
@@ -154,7 +156,7 @@ const GlobalCoverageSection = () => {
                 {activeRegion.focus.map(item => <li key={item} className="flex items-center gap-2 text-sm text-slate-200"><Check className="h-4 w-4 shrink-0 text-primary-300" aria-hidden="true" />{item}</li>)}
               </ul>
               <div className="mt-6 border-t border-white/15 pt-5">
-                <p className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck className="h-4 w-4 text-primary-300" aria-hidden="true" />Amazon SPN · {directory.label}</p>
+                <AmazonPartnerBadge kind="spn" compact href={directory.links.accountManagement} label={`${directory.label} · Account Management`} />
                 <ul className="mt-2">
                   {SPN_SERVICES.map(service => (
                     <li key={service.key}><a href={directory.links[service.key]} data-region-directory={directory.code} target="_blank" rel="noopener noreferrer" className="coverage-directory-link">{service.label}<ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="sr-only"> — {directory.label} (opens in a new tab)</span></a></li>
@@ -168,7 +170,7 @@ const GlobalCoverageSection = () => {
         <p role="status" aria-live={tourPlaying ? 'off' : 'polite'} className="sr-only">{activeRegion.label} selected. Details and {directory.label} partner links updated.</p>
         <div className="mt-5 flex flex-col justify-between gap-3 text-xs leading-relaxed text-slate-400 sm:flex-row">
           <p className="max-w-2xl">Regions show marketplace support, not office locations. Specific countries and scope are agreed with you before work begins.</p>
-          <a href="#amazon-credentials" className="shrink-0 self-start rounded text-sm font-semibold text-primary-300 underline underline-offset-4 hover:text-primary-200">View all partner listings</a>
+          <a href="#amazon-credentials" onClick={revealAmazonSpnDirectory} className="shrink-0 self-start rounded text-sm font-semibold text-primary-300 underline underline-offset-4 hover:text-primary-200">View all partner listings</a>
         </div>
       </div>
     </section>

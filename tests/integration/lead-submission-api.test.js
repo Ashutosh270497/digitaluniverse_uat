@@ -10,7 +10,7 @@ const validBody = {
   name: 'A Seller',
   contactMethod: 'email',
   contact: 'seller@example.com',
-  amazonUrl: 'https://www.amazon.com/dp/B0EXAMPLE1',
+  revenueCurrency: 'USD',
   monthlyRevenue: '50k-200k',
   website: '',
   startedAt: NOW - 2_000,
@@ -120,15 +120,15 @@ test('server rejects an invalid email', async () => {
   assert.equal(result.body.errors.contact, 'Enter a valid work email.');
 });
 
-test('server rejects an invalid URL', async () => {
+test('server rejects an invalid currency', async () => {
   const result = await handleLeadSubmission(
-    createRequest({ ...validBody, amazonUrl: 'https://example.com/product' }),
+    createRequest({ ...validBody, revenueCurrency: 'EUR' }),
     { env: configuredEnv, now: () => NOW },
   );
 
   assert.equal(result.status, 422);
   assert.equal(result.body.delivered, false);
-  assert.equal(result.body.errors.amazonUrl, 'Enter a valid HTTPS Amazon store or ASIN URL.');
+  assert.equal(result.body.errors.revenueCurrency, 'Choose USD, INR or GBP for your revenue range.');
 });
 
 test('upstream server error is returned as a delivery failure', async () => {
@@ -161,7 +161,9 @@ test('successful submission POSTs JSON and confirms acknowledged delivery', asyn
 
   const payload = JSON.parse(webhookCall.options.body);
   assert.equal(payload.contact, validBody.contact);
-  assert.equal(payload.amazonStoreOrAsinUrl, validBody.amazonUrl);
+  assert.equal('amazonStoreOrAsinUrl' in payload, false);
+  assert.equal(payload.monthlyAmazonRevenueCurrency, 'USD');
+  assert.equal(payload.monthlyAmazonRevenueRangeLabel, '$50,000–$200,000');
   assert.equal('website' in payload, false);
   assert.equal('startedAt' in payload, false);
   assert.equal('ip' in payload, false);
@@ -257,4 +259,27 @@ test('client assignment cannot bypass revenue validation without matching server
 
   assert.equal(result.status, 422);
   assert.equal(result.body.errors.monthlyRevenue, 'Select your monthly Amazon revenue range.');
+});
+
+for (const [currency, range, expectedLabel] of [['INR', '1l-5l', '₹1,00,000–₹5,00,000'], ['GBP', '10k-50k', '£10,000–£50,000']]) {
+  test(`webhook preserves ${currency} revenue and drops the retired URL field`, async () => {
+    let sent;
+    const result = await handleLeadSubmission(createRequest({ ...validBody, revenueCurrency: currency, monthlyRevenue: range, amazonUrl: 'https://example.com/old-field' }), {
+      env: configuredEnv, now: () => NOW,
+      fetchImpl: async (_url, options) => { sent = JSON.parse(options.body); return { ok: true }; },
+    });
+    assert.equal(result.status, 200);
+    assert.equal(sent.monthlyAmazonRevenueCurrency, currency);
+    assert.equal(sent.monthlyAmazonRevenueRange, range);
+    assert.equal(sent.monthlyAmazonRevenueRangeLabel, expectedLabel);
+    assert.equal('amazonStoreOrAsinUrl' in sent, false);
+  });
+}
+
+test('server rejects a range that belongs to another currency before delivery', async () => {
+  const result = await handleLeadSubmission(createRequest({ ...validBody, revenueCurrency: 'INR' }), {
+    env: configuredEnv, now: () => NOW, fetchImpl: () => assert.fail('invalid currency/range pair must not reach webhook'),
+  });
+  assert.equal(result.status, 422);
+  assert.ok(result.body.errors.monthlyRevenue);
 });

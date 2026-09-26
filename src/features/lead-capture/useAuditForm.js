@@ -24,7 +24,7 @@ import {
 const fieldIds = {
   name: PRIMARY_AUDIT_FIRST_FIELD_ID,
   contact: 'primary-audit-contact',
-  amazonUrl: 'primary-audit-amazon-url',
+  revenueCurrency: 'primary-audit-currency-usd',
   monthlyRevenue: 'primary-audit-monthly-revenue',
 };
 
@@ -38,7 +38,7 @@ const createInitialFormData = () => ({
   name: '',
   contactMethod: CONTACT_METHODS.email,
   contact: '',
-  amazonUrl: '',
+  revenueCurrency: 'USD',
   monthlyRevenue: '',
   website: '',
   startedAt: Date.now(),
@@ -87,7 +87,12 @@ export const useAuditForm = (formLocation) => {
 
   const handleFieldChange = (event) => {
     const { name, value } = event.target;
-    setFormData((current) => ({ ...current, [name]: value }));
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === 'revenueCurrency' ? { monthlyRevenue: current.monthlyRevenue === 'not-selling-yet' ? current.monthlyRevenue : '' } : {}),
+    }));
+    if (name === 'revenueCurrency') clearFieldError('monthlyRevenue');
     clearFieldError(name);
     if (status === 'error') {
       setStatus('idle');

@@ -35,18 +35,18 @@ try {
     await client.send('Page.bringToFront');
     // Use a new document at each width: a same-URL fragment navigation can
     // retain the scroll position changed by the preceding screenshot.
-    await navigate(`/?audit_viewport=${width}#ai-services`);
+    await navigate(`/ai-services/?audit_viewport=${width}#ai-services`);
     await waitForCondition(client, `Boolean(document.querySelector('[data-ai-service]'))`, 'AI services');
-    await waitForCondition(client, `Math.abs(document.querySelector('#ai-services').getBoundingClientRect().top-96)<5`, `${width}: AI deep link positioning`);
+    await waitForCondition(client, `Math.abs(document.querySelector('#ai-services').getBoundingClientRect().top-24)<5`, `${width}: AI deep link positioning`);
     const state = await evaluate(client, `(()=>{
       const cards=[...document.querySelectorAll('[data-ai-service]')];
       return {
-        cards:cards.map(card=>({id:card.dataset.aiService,title:card.querySelector('h4').textContent,capabilities:card.querySelectorAll('li').length,href:card.querySelector('a').getAttribute('href'),rect:{top:card.getBoundingClientRect().top,height:card.getBoundingClientRect().height},descriptionTop:card.querySelector('.ai-service-description').getBoundingClientRect().top,capabilitiesTop:card.querySelector('.ai-service-capabilities').getBoundingClientRect().top})),
+        cards:cards.map(card=>({id:card.dataset.aiService,title:card.querySelector('h3').textContent,capabilities:card.querySelectorAll('li').length,href:card.querySelector('a').getAttribute('href'),rect:{top:card.getBoundingClientRect().top,height:card.getBoundingClientRect().height},descriptionTop:card.querySelector('.ai-service-description').getBoundingClientRect().top,capabilitiesTop:card.querySelector('.ai-service-capabilities').getBoundingClientRect().top})),
         columns:getComputedStyle(document.querySelector('.ai-service-grid')).gridTemplateColumns.split(' ').length,
         overflow:document.documentElement.scrollWidth>innerWidth,
-        background:getComputedStyle(document.querySelector('#home')).backgroundColor,
+        background:getComputedStyle(document.querySelector('#ai-services')).backgroundColor,
         buttonColor:getComputedStyle(document.querySelector('#ai-services .button-primary')).backgroundColor,
-        anchorVisible:Math.abs(document.querySelector('#ai-services').getBoundingClientRect().top-96)<5,
+        anchorVisible:Math.abs(document.querySelector('#ai-services').getBoundingClientRect().top-24)<5,
         headerLinks:[...document.querySelectorAll('header a')].map(a=>a.getAttribute('href')),
       };
     })()`);
@@ -55,8 +55,8 @@ try {
     assert.equal(state.overflow, false);
     assert.equal(state.anchorVisible, true, `${width}: AI deep link`);
     assert.equal(state.buttonColor, 'rgb(255, 212, 0)', 'founder yellow on primary buttons');
-    assert.equal(state.background, 'rgb(23, 24, 15)', 'warm charcoal replaces navy');
-    assert.ok(state.headerLinks.includes('#ai-services'));
+    assert.equal(state.background, 'rgb(20, 21, 15)', 'warm charcoal replaces navy');
+    assert.ok(state.headerLinks.includes('/ai-services'));
     for (const card of state.cards) {
       assert.equal(card.capabilities, 5);
       assert.equal(new URL(card.href, BASE_URL).searchParams.get('service'), card.id);
@@ -73,7 +73,16 @@ try {
     results.push({width,columns:state.columns,cards:6,alignment:'passed',yellowTheme:'passed'});
   }
 
-  const services = await evaluate(client, `[...document.querySelectorAll('[data-ai-service]')].map(card=>({id:card.dataset.aiService,title:card.querySelector('h4').textContent,href:card.querySelector('a').getAttribute('href')}))`);
+  await navigate('/');
+  assert.equal(await evaluate(client, `document.querySelector('#ai-services')`), null, 'AI services are removed from the homepage');
+  assert.equal(await evaluate(client, `performance.getEntriesByType('resource').some(resource => resource.name.includes('/AIServicesPage-'))`), false, 'AI page stays lazy on the Amazon homepage');
+  await evaluate(client, `document.querySelector('#home a[href="/ai-services"]').click()`);
+  await waitForCondition(client, `Boolean(document.querySelector('[data-ai-service]'))`, 'hero AI link opens the standalone page');
+  assert.equal(await evaluate(client, `document.querySelectorAll('h1').length`), 1, 'AI page has a single main heading');
+  await navigate('/#ai-custom-ai-agents');
+  await waitForCondition(client, `location.pathname.startsWith('/ai-services') && Boolean(document.querySelector('#ai-custom-ai-agents'))`, 'legacy AI section links redirect to the new page');
+
+  const services = await evaluate(client, `[...document.querySelectorAll('[data-ai-service]')].map(card=>({id:card.dataset.aiService,title:card.querySelector('h3').textContent,href:card.querySelector('a').getAttribute('href')}))`);
   for (const service of services) {
     await navigate(service.href);
     await waitForCondition(client, `document.querySelector('#ai-project-service')?.value === '${service.id}'`, 'AI service preselection');

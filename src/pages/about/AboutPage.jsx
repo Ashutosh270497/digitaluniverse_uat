@@ -1,10 +1,9 @@
-import { ExternalLink } from 'lucide-react';
+import { AmazonPartnerBadges } from '../../components/ui/AmazonPartnerBadge.jsx';
 import expertPhotoLarge from '../../assets/amazon_pics/gautam-soni-1067.webp';
 import expertPhotoSmall from '../../assets/amazon_pics/gautam-soni-600.webp';
 import { AI_SERVICES } from '../../content/aiServices.ts';
 import { SERVICES } from '../../content/serviceContent.ts';
 import { MARKETING_ROUTES, SERVICE_PAGE_PATHS } from '../../config/routes.js';
-import { SITE_CONFIG } from '../../config/site.js';
 import ConversionSection from '../../features/lead-capture/ConversionSection.jsx';
 import Breadcrumbs from '../../components/ui/Breadcrumbs.jsx';
 import MarketingLayout from '../../components/layout/MarketingLayout.jsx';
@@ -54,15 +53,7 @@ const AboutPage = () => {
               Delivery is organised around the agreed Amazon workstreams, evidence available in the account,
               named responsibilities, and review points documented in the proposal.
             </p>
-            <a
-              href={SITE_CONFIG.spnLinks.accountManagement}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-2 font-extrabold text-primary-800 underline decoration-primary-300 underline-offset-4"
-            >
-              Confirm the Amazon SPN India Account Management listing
-              <ExternalLink className="h-4 w-4" aria-hidden="true" />
-            </a>
+            <AmazonPartnerBadges className="mt-6" />
           </div>
         </div>
       </section>
@@ -93,7 +84,7 @@ const AboutPage = () => {
           <h2 id="about-ai-heading" className="section-title">AI solutions built around your next step.</h2>
           <p className="mt-5 max-w-2xl text-lg leading-relaxed text-gray-600">Automate a workflow, connect your company knowledge or build an AI-enabled product. Explore the support that fits your business.</p>
           <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {AI_SERVICES.map(service => <a key={service.id} href={`/#ai-${service.id}`} className="rounded-xl border border-primary-200 bg-white p-6 font-bold text-amazon-dark hover:border-primary-600">{service.title}</a>)}
+            {AI_SERVICES.map(service => <a key={service.id} href={`${MARKETING_ROUTES.aiServices.path}#ai-${service.id}`} className="rounded-xl border border-primary-200 bg-white p-6 font-bold text-amazon-dark hover:border-primary-600">{service.title}</a>)}
           </div>
         </div>
       </section>

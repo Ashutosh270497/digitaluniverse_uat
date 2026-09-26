@@ -80,6 +80,16 @@
       "source": "/case-studies/template/index.html",
       "destination": "/case-studies/template",
       "permanent": true
+    },
+    {
+      "source": "/ai-services/index.html",
+      "destination": "/ai-services",
+      "permanent": true
+    },
+    {
+      "source": "/amazon-spn/index.html",
+      "destination": "/amazon-spn",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -130,6 +140,14 @@
     {
       "source": "/case-studies/template",
       "destination": "/case-studies/template/index.html"
+    },
+    {
+      "source": "/ai-services",
+      "destination": "/ai-services/index.html"
+    },
+    {
+      "source": "/amazon-spn",
+      "destination": "/amazon-spn/index.html"
     }
   ],
   "headers": [

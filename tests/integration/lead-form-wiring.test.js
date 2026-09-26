@@ -12,11 +12,12 @@ test('canonical form uses persistent labels, required fields, and accessible err
 
   assert.match(source, /<label htmlFor=\{PRIMARY_AUDIT_FIRST_FIELD_ID\}/);
   assert.match(source, /Work email or WhatsApp number/);
-  assert.match(source, /Amazon store or ASIN URL/);
+  assert.doesNotMatch(source, /Amazon store or ASIN URL/);
+  assert.match(source, /Revenue currency/);
   assert.match(source, /Monthly Amazon revenue range/);
   assert.equal(source.match(/\brequired\b/g)?.length ?? 0, 4);
   assert.match(source, /type=\{contactIsWhatsApp \? 'tel' : 'email'\}/);
-  assert.match(source, /type="url"/);
+  assert.match(source, /name="revenueCurrency"/);
   assert.match(source, /autoComplete="name"/);
   assert.match(source, /aria-describedby/);
   assert.match(source, /aria-invalid/);

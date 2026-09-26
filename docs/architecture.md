@@ -42,7 +42,7 @@ This repository contains one React/Vite website and a small lead-delivery API. I
 - `shared/` stays independent of React, browser globals, Node-only modules, and application configuration. Both sides import the same lead schema.
 - Use explicit relative imports with extensions. There is no alias configuration to keep in sync across Vite, Node tests, and the editor.
 - Keep business identity in `src/config/site.js`; organization schema and social metadata derive their identity values from it.
-- Manage Amazon Ads and regional SPN links in `src/config/site.js`. The homepage directory, service links, and generated no-JavaScript directory use this configuration. USA, UK, and India each have Account Management, Advertising Optimization, and Enhanced Brand Content links; the older Cataloguing listing remains India-only.
+- Manage Amazon Ads and regional SPN links in `src/config/site.js`. The homepage directory, service links, map, and generated no-JavaScript directory use this configuration. USA, UK, and India each have Account Management, Advertising Optimization, Cataloguing, and Enhanced Brand Content links. The four founder-supplied India GSPN links also power `/amazon-spn`.
 - Keep verified-content and consent gates intact when moving or reusing components.
 
 ## HTML entries and public routes
@@ -61,7 +61,7 @@ To add a route, update route resolution and SEO metadata, add its HTML shell and
 
 ## Lead capture
 
-`AuditForm.jsx` renders the single form implementation on the home and contact pages. `useAuditForm.js` owns field state, validation, submission, error focus, and funnel events. `submitLead.js` owns browser HTTP delivery. `shared/leadSchema.js` is the common validation contract. The API adapter delegates to `server/leads/leadSubmission.js`.
+`AuditForm.jsx` renders the single form implementation on the home and contact pages. It collects name, contact, revenue currency and a matching revenue range; the Amazon URL field is retired. `useAuditForm.js` owns field state, validation, submission, error focus, and funnel events. `submitLead.js` owns browser HTTP delivery. `shared/leadSchema.js` is the common validation contract. The API adapter delegates to `server/leads/leadSubmission.js`.
 
 The browser never receives webhook credentials. Static site hosting still requires a separately deployed API, configured through `VITE_LEAD_API_URL`. Success remains conditional on acknowledged delivery.
 

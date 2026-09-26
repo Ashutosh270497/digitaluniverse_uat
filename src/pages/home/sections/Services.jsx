@@ -3,12 +3,12 @@ import { SERVICES } from '../../../content/serviceContent.ts';
 import { SERVICE_PAGE_PATHS, PRIMARY_SERVICE_INQUIRY } from '../../../config/routes.js';
 import { activatePrimaryAuditForm, PRIMARY_CTA_LABEL } from '../../../features/lead-capture/primaryCta.js';
 const presentation = {
-  'amazon-ppc-profitability': { icon: Target, title: 'Amazon PPC management', points: ['Campaign strategy and account audits', 'Keyword and bid optimization', 'Advertising performance reviews'] },
-  'account-management-health': { icon: ShieldCheck, title: 'Account management', points: ['Account health and issue resolution', 'Seller Support coordination', 'Day-to-day account priorities'] },
-  'listing-seo-catalog': { icon: Search, title: 'Listings that work harder', points: ['Search-focused listing copy', 'Keyword and catalog improvements', 'Variation and listing issue support'] },
-  'brand-content-storefront': { icon: LayoutTemplate, title: 'A+ content and storefronts', points: ['A+ content and Brand Story', 'Brand-aligned copy and creative', 'Amazon Storefront planning'] },
-  'product-launch-growth': { icon: Rocket, title: 'Product launch strategy', points: ['Launch-readiness review', 'Content and advertising priorities', 'A clear plan for your next ASIN'] },
-  'india-global-expansion': { icon: Globe2, title: 'Global marketplace growth', points: ['Marketplace-readiness assessment', 'Localized listings and campaigns', 'A phased expansion plan'] },
+  'amazon-ppc-profitability': { icon: Target, title: 'Amazon PPC management', points: ['Campaign strategy & account audits', 'Keyword, bid & placement optimisation', 'Search term & performance analysis'] },
+  'account-management-health': { icon: ShieldCheck, title: 'Account management', points: ['Account health & issue resolution', 'Seller Support coordination', 'Catalogue & account performance management'] },
+  'listing-seo-catalog': { icon: Search, title: 'Amazon Listing Optimisation', points: ['Search-focused listing copy', 'Keyword and catalogue optimisation', 'Variation & listing issue support'] },
+  'brand-content-storefront': { icon: LayoutTemplate, title: 'A+ Content & Amazon Store', points: ['A+ Content & Brand Story', 'Conversion-focused creative', 'Amazon Store strategy & planning'] },
+  'product-launch-growth': { icon: Rocket, title: 'Amazon Product Launch Strategy', points: ['Launch readiness assessment', 'Listing, content & advertising setup', 'Launch plan for your next ASIN'] },
+  'india-global-expansion': { icon: Globe2, title: 'Global Amazon Marketplace Growth', points: ['Marketplace-readiness assessment', 'Localized listings and campaigns', 'A phased expansion plan'] },
 };
 const Services = () => (
   <section id="services" aria-labelledby="services-heading" className="section-space bg-primary-50">
@@ -24,7 +24,7 @@ const Services = () => (
           </article>
         ); })}
       </div>
-      <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-xl bg-amazon-cream p-6 sm:flex-row sm:items-center"><p className="font-semibold text-amazon-dark">Not sure where to start? Let’s look at your account.</p><button type="button" onClick={() => activatePrimaryAuditForm({ ctaLocation: 'services' })} className="button-primary shrink-0">{PRIMARY_CTA_LABEL}<ArrowRight className="h-4 w-4" aria-hidden="true" /></button></div>
+      <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-xl bg-amazon-cream p-6 sm:flex-row sm:items-center"><p className="font-semibold text-amazon-dark">Not sure where to start? Get a free Amazon account audit.</p><button type="button" onClick={() => activatePrimaryAuditForm({ ctaLocation: 'services' })} className="button-primary shrink-0">{PRIMARY_CTA_LABEL}<ArrowRight className="h-4 w-4" aria-hidden="true" /></button></div>
     </div>
   </section>
 );

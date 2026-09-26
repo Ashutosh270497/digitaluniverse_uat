@@ -1,6 +1,7 @@
 import { launchChrome, connectToPage, closeChrome, wait, evaluate } from '../lib/browser.mjs'
 import assert from 'node:assert/strict'
 import { SEO_ROUTES } from '../../src/config/seo.js'
+import { SITE_CONFIG, SPN_SERVICES, SPN_INDIA_SERVICES } from '../../src/config/site.js'
 
 const BASE_URL = process.env.AUDIT_BASE_URL ?? 'http://127.0.0.1:4173/'
 const EXPECT_CONSENT = process.env.AUDIT_EXPECT_CONSENT === 'true'
@@ -35,7 +36,7 @@ const navigate = async (client, path) => {
 }
 
 const pressKey = async (client, key, code = key) => {
-  const virtualKeyCode = { Enter: 13, Escape: 27, ' ': 32, Tab: 9 }[key] ?? 0
+  const virtualKeyCode = { Enter: 13, Escape: 27, ' ': 32, Tab: 9, ArrowLeft: 37, ArrowRight: 39 }[key] ?? 0
   const keyParams = {
     key,
     code,
@@ -93,6 +94,7 @@ const routeAudit = async (client) => {
         .filter((link) => ['', '#'].includes(link.getAttribute('href')?.trim()))
         .map((link) => link.outerHTML.slice(0, 180)),
       hrefs: [...document.querySelectorAll('a[href]')].map((link) => link.href),
+      footerBadges: [...document.querySelectorAll('footer [data-amazon-partner-badge]')].map(link => ({ kind: link.dataset.amazonPartnerBadge, href: link.getAttribute('href') })),
     }))()`)
 
     assert.equal(result.title, route.title, `${route.path} document title`)
@@ -101,6 +103,10 @@ const routeAudit = async (client) => {
     assert.deepEqual(result.unnamedLinks, [], `${route.path} accessible link names`)
     assert.deepEqual(result.unsafeBlankLinks, [], `${route.path} safe new-tab links`)
     assert.deepEqual(result.placeholderLinks, [], `${route.path} no placeholder links`)
+    assert.deepEqual(result.footerBadges, [
+      { kind: 'ads', href: SITE_CONFIG.amazonAdsPartnerUrl },
+      { kind: 'spn', href: '/#amazon-credentials' },
+    ], `${route.path} shared partner badges`)
     results.push({ path: route.path, hrefs: result.hrefs })
   }
 
@@ -230,10 +236,11 @@ const homeInteractionAudit = async (client) => {
 
   console.log('  homepage: keyboard secondary CTA')
   await navigate(client, '/')
-  await evaluate(client, `([...document.querySelectorAll('a[href="#services"]')]
-    .find((link) => link.textContent.includes('Explore Our Services')))?.focus()`)
+  await evaluate(client, `([...document.querySelectorAll('a[href="/amazon-spn"]')]
+    .find((link) => link.textContent.includes('Explore Our SPN Page')))?.focus()`)
   await pressKey(client, 'Enter')
-  assert.equal(await evaluate(client, `location.hash`), '#services')
+  assert.equal(await waitForBrowserCondition(client, `document.querySelectorAll('[data-spn-service]').length === 4`), true, 'SPN page renders after keyboard navigation')
+  assert.deepEqual(await evaluate(client, `[...document.querySelectorAll('[data-spn-service]')].map(link => link.href)`), SPN_INDIA_SERVICES.map(service => service.url))
 
   console.log('  homepage: keyboard FAQ')
   await navigate(client, '/')
@@ -309,7 +316,7 @@ const croTreatmentAudit = async (client) => {
   return EXPECTED_CRO_EXPERIMENT
 }
 
-const setFormValuesExpression = ({ contact = 'qa@example.com', amazonUrl = 'https://www.amazon.in/dp/B012345678' } = {}) => `(() => {
+const setFormValuesExpression = ({ contact = 'qa@example.com', monthlyRevenue = '10k-50k' } = {}) => `(() => {
   const setValue = (element, value) => {
     const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value');
     descriptor.set.call(element, value);
@@ -318,9 +325,8 @@ const setFormValuesExpression = ({ contact = 'qa@example.com', amazonUrl = 'http
   };
   setValue(document.getElementById('primary-audit-name'), 'Release QA');
   setValue(document.getElementById('primary-audit-contact'), ${JSON.stringify(contact)});
-  setValue(document.getElementById('primary-audit-amazon-url'), ${JSON.stringify(amazonUrl)});
   const revenue = document.getElementById('primary-audit-monthly-revenue');
-  if (revenue) setValue(revenue, '10k-50k');
+  if (revenue) setValue(revenue, ${JSON.stringify(monthlyRevenue)});
 })()`
 
 const formAudit = async (client) => {
@@ -335,7 +341,7 @@ const formAudit = async (client) => {
   await wait(100)
   assert.equal(await evaluate(client, `document.activeElement?.id`), 'primary-audit-name')
   assert.ok(await evaluate(client, `(() => {
-    const expected = document.getElementById('primary-audit-monthly-revenue') ? 4 : 3;
+    const expected = document.getElementById('primary-audit-monthly-revenue') ? 3 : 2;
     return document.querySelectorAll('[aria-invalid="true"]').length >= expected;
   })()`))
 
@@ -344,10 +350,7 @@ const formAudit = async (client) => {
   await wait(100)
   assert.equal(await evaluate(client, `document.activeElement?.id`), 'primary-audit-contact')
 
-  await evaluate(client, setFormValuesExpression({ amazonUrl: 'https://example.com/not-amazon' }))
-  await evaluate(client, `document.getElementById('primary-audit-form').requestSubmit()`)
-  await wait(100)
-  assert.equal(await evaluate(client, `document.activeElement?.id`), 'primary-audit-amazon-url')
+  assert.equal(await evaluate(client, `document.querySelector('[name="amazonUrl"]')`), null, 'Amazon URL field is removed')
 
   await evaluate(client, setFormValuesExpression())
   await evaluate(client, `(() => {
@@ -407,6 +410,69 @@ const formAudit = async (client) => {
   )
 }
 
+const revenueCurrencyAudit = async (client) => {
+  if (EXPECTED_CRO_EXPERIMENT === 'revenue_range_field') return { omittedByExperiment: true }
+  for (const path of ['/', '/contact/']) {
+    await navigate(client, path)
+    await waitForBrowserCondition(client, `Boolean(document.querySelector('#primary-audit-currency-usd'))`)
+    const currencyCases = [['USD', '10k-50k', '$10,000–$50,000'], ['INR', '1l-5l', '₹1,00,000–₹5,00,000'], ['GBP', '10k-50k', '£10,000–£50,000']]
+    for (const [currency, range, label] of currencyCases) {
+      await evaluate(client, `document.getElementById('primary-audit-currency-${currency.toLowerCase()}').click()`)
+      assert.equal(await waitForBrowserCondition(client, `document.querySelector('#primary-audit-monthly-revenue').value === ''`), true, `${currency}: range clears on currency change`)
+      await evaluate(client, setFormValuesExpression({ monthlyRevenue: range }))
+      assert.equal(await evaluate(client, `document.querySelector('#primary-audit-monthly-revenue').selectedOptions[0].textContent`), label)
+      await evaluate(client, `(() => {
+        window.__qaCurrencyPayload = null;
+        window.fetch = async (_url, options) => {
+          window.__qaCurrencyPayload = JSON.parse(options.body);
+          return new Response(JSON.stringify({delivered:false,message:'QA simulated delivery failure.'}), {status:502,headers:{'Content-Type':'application/json'}});
+        };
+        document.getElementById('primary-audit-form').requestSubmit();
+      })()`)
+      assert.equal(await waitForBrowserCondition(client, `Boolean(window.__qaCurrencyPayload)`), true, `${currency}: submission reaches API transport`)
+      const submitted = await evaluate(client, 'window.__qaCurrencyPayload')
+      assert.equal(submitted.revenueCurrency, currency)
+      assert.equal(submitted.monthlyRevenue, range)
+      assert.equal('amazonUrl' in submitted, false)
+    }
+    // Native radio keyboard selection must also reset a monetary range.
+    await evaluate(client, `document.querySelector('#primary-audit-currency-gbp').focus()`)
+    await pressKey(client, 'ArrowLeft')
+    assert.equal(await waitForBrowserCondition(client, `document.querySelector('#primary-audit-currency-inr').checked`), true, 'currency supports arrow-key selection')
+    assert.equal(await evaluate(client, `document.querySelector('#primary-audit-monthly-revenue').value`), '')
+    await evaluate(client, setFormValuesExpression({ monthlyRevenue: 'not-selling-yet' }))
+    await evaluate(client, `document.querySelector('#primary-audit-currency-usd').click()`)
+    assert.equal(await waitForBrowserCondition(client, `document.querySelector('#primary-audit-monthly-revenue').value === 'not-selling-yet'`), true, 'non-monetary answer survives currency changes')
+  }
+  return {currencies:3,forms:2,keyboard:'passed',payloads:'passed'}
+}
+
+const partnerBadgeAudit = async (client) => {
+  await navigate(client, '/')
+  await evaluate(client, `document.querySelector('#home [data-amazon-partner-badge="spn"]').focus()`)
+  await pressKey(client, 'Enter')
+  assert.equal(await waitForBrowserCondition(client, `location.hash === '#amazon-credentials' && document.querySelector('#amazon-credentials details')?.open`), true, 'SPN badge opens the directory using the keyboard')
+  const directoryUrls = SITE_CONFIG.spnRegions.flatMap(region => SPN_SERVICES.map(service => region.links[service.key])).sort()
+  assert.deepEqual(await evaluate(client, `[...document.querySelectorAll('#amazon-credentials a')].map(link => link.href).sort()`), directoryUrls, 'all configured regional service links remain available')
+
+  await evaluate(client, `document.querySelector('#amazon-credentials summary').click(); document.querySelector('footer [data-amazon-partner-badge="spn"]').click()`)
+  assert.equal(await evaluate(client, `document.querySelector('#amazon-credentials details').open`), true, 'repeated badge clicks reopen a collapsed directory when the hash is unchanged')
+
+  await navigate(client, '/about/')
+  await evaluate(client, `document.querySelector('main [data-amazon-partner-badge="spn"]').click()`)
+  assert.equal(await waitForBrowserCondition(client, `location.pathname === '/' && document.querySelector('#amazon-credentials details')?.open`), true, 'badge navigation from another page opens the directory')
+
+  await navigate(client, '/#amazon-credentials')
+  assert.equal(await evaluate(client, `document.querySelector('#amazon-credentials details').open`), true, 'direct directory URLs work in a fresh page')
+
+  for (const [id, code] of [['north-america', 'US'], ['europe', 'UK'], ['asia', 'IN']]) {
+    await evaluate(client, `document.querySelector('[data-region-select="${id}"]').click()`)
+    const directory = SITE_CONFIG.spnRegions.find(region => region.code === code)
+    assert.equal(await waitForBrowserCondition(client, `document.querySelector('#coverage-region-details [data-amazon-partner-badge="spn"]').href === ${JSON.stringify(directory.links.accountManagement)}`), true, `${code}: the map badge follows the selected region`)
+  }
+  return { keyboard: 'passed', repeatClick: 'passed', crossPage: 'passed', deepLink: 'passed', regionalLinks: directoryUrls.length, mapRegions: 3 }
+}
+
 const attributionAndConsentAudit = async (client) => {
   await navigate(
     client,
@@ -459,6 +525,7 @@ const main = async () => {
       client.send('Runtime.enable'),
       client.send('Network.enable'),
     ])
+    await client.send('Page.bringToFront')
 
     console.log('Release integration audit: routes')
     const routeResults = await routeAudit(client)
@@ -468,8 +535,12 @@ const main = async () => {
     const croTreatment = await croTreatmentAudit(client)
     console.log('Release integration audit: homepage interactions')
     await homeInteractionAudit(client)
+    console.log('Release integration audit: Amazon partner badges')
+    const partnerBadges = await partnerBadgeAudit(client)
     console.log('Release integration audit: form flows')
     await formAudit(client)
+    console.log('Release integration audit: revenue currencies')
+    const revenueCurrencies = await revenueCurrencyAudit(client)
     console.log('Release integration audit: attribution and consent')
     const consent = await attributionAndConsentAudit(client)
 
@@ -480,6 +551,8 @@ const main = async () => {
       internalLinks: links.internal,
       externalLinks: links.external,
       croTreatment,
+      partnerBadges,
+      revenueCurrencies,
       consent,
       browserErrors,
     }, null, 2))

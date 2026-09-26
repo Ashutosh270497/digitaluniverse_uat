@@ -20,8 +20,6 @@
 .home-page #performance [data-founder-metric] { border-left: 0; padding-left: 0; }
 .home-page #performance [data-founder-metric] dd { letter-spacing: -.05em; }
 .home-page #performance [data-founder-metric] dt { border-top: 3px solid #ffd400; padding-top: 12px; margin-top: 14px; }
-.home-page #performance dl + dl { gap: 14px; }
-.home-page #performance dl + dl > div { padding: 8px 12px; border: 1px solid var(--home-line); border-radius: 999px; background: #fafbf7; }
 .home-section-intro { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); align-items: end; gap: 40px; }
 .home-section-description { max-width: 390px; margin-left: auto; color: #5a6052; font-size: 16px; line-height: 1.75; }
 .home-page #services { background: var(--home-paper); }
@@ -33,16 +31,6 @@
 .home-page .amazon-service-card:first-child ul { color: #3f462e; }
 .home-page .amazon-service-card > a { width: 100%; padding-top: 16px; border-top: 1px solid #17180f14; }
 .home-page #services .section-shell > div:last-child { background: #edeee3; border-radius: 14px; }
-.home-page .ai-services-section { background: radial-gradient(ellipse at 90% 0, #ffd40009, transparent 50%), #14150f; border-top: 1px solid #ffd40035; }
-.home-page .ai-services-section .ai-capabilities-visual { max-width: 500px; }
-.home-page .ai-service-card { padding: 24px; border-color: #d7b92845; background: #22241b; border-radius: 16px; }
-.home-page .ai-service-icon { width: 48px; height: 48px; border-radius: 12px; }
-.home-page .ai-service-title { margin-top: 18px; font-size: 21px; }
-.home-page .ai-service-description { margin-top: 12px; font-size: 14px; line-height: 1.65; }
-.home-page .ai-service-capabilities { margin-top: 20px; padding-top: 20px; }
-.home-page .ai-service-capabilities li { font-size: 13px; line-height: 1.6; }
-.home-page .ai-service-capabilities li + li { margin-top: 9px; }
-.home-page .ai-service-link { margin-top: 20px; padding-top: 15px; font-size: 13px; }
 .home-page #sales-snapshots { background: #fff; }
 .home-page #sales-snapshots figure { border-color: var(--home-line); box-shadow: 0 8px 28px #17180f06; }
 .home-page #sales-snapshots figcaption { background: #f8f8f1; }
@@ -111,4 +99,4 @@
 @media (min-width: 1280px) { .home-page #hero-heading { font-size: 60px; } .home-page #performance [data-founder-metric] dd { font-size: 56px; } }
 @media (max-width: 1023px) { .home-section-intro { grid-template-columns: 1fr; gap: 20px; } .home-section-description { margin-left: 0; max-width: 620px; } .home-process-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .home-faq-grid { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 32px; } .home-faq-intro { position: static; } .final-cta-panel { gap: 28px; padding: 32px; } .final-action-card { padding: 18px; } .final-action-icon { display: none; } }
 @media (max-width: 767px) { .home-faq-grid { grid-template-columns: 1fr; gap: 28px; } .faq-contact-card { max-width: none; padding: 20px; } .final-cta-panel { grid-template-columns: 1fr; gap: 30px; } .final-action-icon { display: flex; } .final-action-card { min-height: 124px; } }
-@media (max-width: 479px) { .home-page .section-space { padding-block: 56px; } .home-process-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 28px; } .home-process-grid li { padding: 22px; } .home-process-grid h3 { margin-top: 20px; } .home-faq-item h3 > button { padding: 16px 14px; gap: 10px; font-size: 14px; } .faq-answer { padding: 0 18px 20px 39px; } .faq-toggle { width: 26px; height: 26px; } .final-cta-panel { padding: 28px 22px; border-radius: 20px; } .final-action-card { padding: 18px 14px; gap: 10px; } .final-action-icon { display: none; } .home-page .home-final-cta { padding-top: 0; padding-bottom: 40px; } .home-page .ai-service-card { padding: 22px; } }
+@media (max-width: 479px) { .home-page .section-space { padding-block: 56px; } .home-process-grid { grid-template-columns: 1fr; gap: 14px; margin-top: 28px; } .home-process-grid li { padding: 22px; } .home-process-grid h3 { margin-top: 20px; } .home-faq-item h3 > button { padding: 16px 14px; gap: 10px; font-size: 14px; } .faq-answer { padding: 0 18px 20px 39px; } .faq-toggle { width: 26px; height: 26px; } .final-cta-panel { padding: 28px 22px; border-radius: 20px; } .final-action-card { padding: 18px 14px; gap: 10px; } .final-action-icon { display: none; } .home-page .home-final-cta { padding-top: 0; padding-bottom: 40px; } }

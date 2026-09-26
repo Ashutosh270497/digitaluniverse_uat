@@ -13,13 +13,17 @@ test('hero shares the recorded copy with SEO and provides a stable accessible he
   assert.doesNotMatch(hero, /data-hero-motion-control|Pause headline|Play headline/);
   assert.match(hero, /prefers-reduced-motion: reduce/);
   assert.doesNotMatch(hero, /aria-live="polite"|aria-live="assertive"/);
-  assert.match(cta, /SECONDARY_CTA_HREF = '#services'/);
+  assert.match(cta, /SECONDARY_CTA_HREF = '\/amazon-spn'/);
 });
 
 test('hero retains credentials, the canonical form and focusable reveal behavior', async () => {
-  const hero = await read('src/pages/home/sections/HeroWithForm.jsx');
-  assert.match(hero, /SITE_CONFIG\.amazonAdsPartnerUrl/);
-  assert.match(hero, /rel="noopener noreferrer"/);
+  const [hero, badge] = await Promise.all([
+    read('src/pages/home/sections/HeroWithForm.jsx'),
+    read('src/components/ui/AmazonPartnerBadge.jsx'),
+  ]);
+  assert.match(hero, /<AmazonPartnerBadges priority/);
+  assert.match(badge, /SITE_CONFIG\.amazonAdsPartnerUrl/);
+  assert.match(badge, /noopener noreferrer/);
   assert.match(hero, /<AuditForm formLocation="hero"/);
   assert.match(hero, /PRIMARY_AUDIT_FORM_REVEAL_EVENT/);
   assert.match(hero, /focusPrimaryAuditForm\(\)/);

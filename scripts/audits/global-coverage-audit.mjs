@@ -7,6 +7,13 @@ const BASE_URL = process.env.AUDIT_BASE_URL ?? 'http://127.0.0.1:4173/';
 const output = new URL('../../artifacts/audits/', import.meta.url);
 mkdirSync(output, { recursive: true });
 const regions = [['north-america', 'US', 'North America'], ['europe', 'UK', 'Europe'], ['asia', 'IN', 'Asia']];
+// CSS pause requests settle on the next animation frame, after the DOM state
+// changes. Wait for that frame before comparing exact animation positions.
+const settleMapAnimations = (client) => evaluate(client, `Promise.all(
+  [...document.querySelectorAll('.coverage-route-travel, .coverage-route-signal, .coverage-location-pulse')]
+    .flatMap(element => element.getAnimations())
+    .map(animation => animation.ready)
+).then(() => true)`);
 const screenshot = async (client, filename) => {
   const rect = await evaluate(client, `(() => {const r=document.querySelector('#global-coverage').getBoundingClientRect();return {x:r.left+scrollX,y:r.top+scrollY,width:r.width,height:r.height}})()`);
   const result = await client.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { ...rect, scale: 1 } });
@@ -93,6 +100,7 @@ const run = async (width, { reducedMotion = false, forceFallback = false } = {})
       assert.notEqual(beforeMotion.flow, afterMotion.flow, 'connections keep flowing');
       await evaluate(client, `document.querySelector('[data-map-motion]').click()`);
       await waitForCondition(client, `document.querySelector('[data-animation-active]').dataset.animationActive === 'false'`, 'manual motion pause');
+      await settleMapAnimations(client);
       const frozen = await sampleMotion();
       await wait(450);
       assert.deepEqual(await sampleMotion(), frozen, 'pause freezes the visible flow and signals');
@@ -104,6 +112,7 @@ const run = async (width, { reducedMotion = false, forceFallback = false } = {})
       assert.equal(await evaluate(client, `document.querySelector('[data-map-tour]').getAttribute('aria-pressed')`), 'false');
       await evaluate(client, `document.querySelector('[data-map-tour]').click();window.scrollTo({top:0,behavior:'instant'})`);
       await waitForCondition(client, `document.querySelector('[data-animation-active]').dataset.animationActive === 'false'`, 'offscreen animation pauses');
+      await settleMapAnimations(client);
       const pausedRegion = await evaluate(client, `document.querySelector('#coverage-region-title').textContent`);
       const offscreenMotion = await sampleMotion();
       await wait(6300);
@@ -116,7 +125,7 @@ const run = async (width, { reducedMotion = false, forceFallback = false } = {})
     }
     const errors = client.events.filter(event => event.method === 'Runtime.exceptionThrown');
     assert.deepEqual(errors, []);
-    return { width, reducedMotion, forceFallback, regions: 3, regionalLinks: 9, selection: 'passed', zoomAndReset: 'passed', keyboard: 'passed', ...(width === 1440 ? { continuousMotion: 'passed', pauseAndResume: 'passed' } : {}), webglRequests: 0 };
+    return { width, reducedMotion, forceFallback, regions: 3, regionalLinks: SITE_CONFIG.spnRegions.length * SPN_SERVICES.length, selection: 'passed', zoomAndReset: 'passed', keyboard: 'passed', ...(width === 1440 ? { continuousMotion: 'passed', pauseAndResume: 'passed' } : {}), webglRequests: 0 };
   } finally {
     client?.socket.close();
     await closeChrome(browser);

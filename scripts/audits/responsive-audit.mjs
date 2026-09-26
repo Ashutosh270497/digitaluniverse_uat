@@ -19,7 +19,7 @@ const stateExpression = `(() => {
     return rect.width > 0 && rect.height > 0 && getComputedStyle(el).visibility !== 'hidden' && el.getClientRects().length > 0;
   };
   const name = el => el.getAttribute('aria-label') || el.labels?.[0]?.textContent?.trim() || el.textContent.trim() || el.querySelector('img')?.alt;
-  const overflow = [...document.querySelectorAll('main *')].filter(visible).filter(el => {
+  const overflow = [...document.querySelectorAll('main *, footer *')].filter(visible).filter(el => {
     if (el.closest('[data-global-map-frame]') || el.closest('[role="tooltip"]')) return false;
     const rect = el.getBoundingClientRect();
     return rect.left < -1 || rect.right > innerWidth + 1;
@@ -39,11 +39,11 @@ const stateExpression = `(() => {
     headerFits: headerRect.left >= 0 && headerRect.right <= innerWidth && headerRect.height >= 40,
     faqValid: faq.length === 8 && faq.every(el=>document.getElementById(el.getAttribute('aria-controls')) && ['true','false'].includes(el.getAttribute('aria-expanded'))),
     internalNotes: /repository|Figure withheld|Business input required|not approved public terms/i.test(document.body.innerText),
-    founderFigures: ['$10M+', '500+', '$5M+', '1M+', '30+', '5 years', '95%'].every(value=>founder.includes(value)),
+    founderFigures: ['50+', 'Brands & Sellers Supported', '15+', 'Amazon Categories', '5+', 'Global Amazon Marketplaces', '5+ Years', 'Combined Amazon Experience'].every(value=>founder.includes(value)),
     duplicateIds: [...new Set([...document.querySelectorAll('[id]')].map(el=>el.id))].filter(id=>document.querySelectorAll('[id="'+id+'"]').length>1),
     credentials: [...document.querySelectorAll('#amazon-credentials a')].map(a=>a.href).sort(),
     safeExternalLinks: [...document.querySelectorAll('a[target="_blank"]')].every(a=>a.rel.includes('noopener') && a.rel.includes('noreferrer')),
-    images: [...document.querySelectorAll('main img')].filter(visible).map(img=>({ alt:img.alt, complete:img.complete, width:img.naturalWidth })),
+    images: [...document.querySelectorAll('main img, footer img')].filter(visible).map(img=>({ alt:img.alt, complete:img.complete, width:img.naturalWidth })),
     contacts: ['mailto:', 'tel:', 'https://wa.me/'].every(prefix=>[...document.querySelectorAll('a')].some(a=>a.href.startsWith(prefix))),
     lazyCalculator: !performance.getEntriesByType('resource').some(resource=>resource.name.includes('/ROICalculator-')),
   };
@@ -60,7 +60,7 @@ try {
     await client.send('Emulation.setDeviceMetricsOverride', { width, height: 900, deviceScaleFactor: 1, mobile: width < 500 })
     await client.send('Page.navigate', { url: BASE_URL })
     await waitForCondition(client, `Boolean(document.querySelector('#performance'))`, 'homepage')
-    await evaluate(client, `(async()=>{ for(const img of document.querySelectorAll('main img')) { img.loading='eager'; await img.decode().catch(()=>{}); } })()`)
+    await evaluate(client, `(async()=>{ for(const img of document.querySelectorAll('main img, footer img')) { img.loading='eager'; await img.decode().catch(()=>{}); } })()`)
     await evaluate(client, `document.querySelector('#global-coverage').scrollIntoView({behavior:'instant'})`)
     await waitForCondition(client, `Boolean(document.querySelector('[data-map-fallback]'))`, 'static regional map')
     await evaluate(client, `document.querySelector('#growth-calculator').scrollIntoView({behavior:'instant'})`)
@@ -102,7 +102,7 @@ try {
     await evaluate(client, `document.querySelector('#growth-calculator').scrollIntoView({behavior:'instant'})`)
     await waitForCondition(client, `Boolean(document.querySelector('#roi-calculator input[type="number"]'))`, 'growth calculator')
     assert.deepEqual((await evaluate(client, stateExpression)).overflow, [], `${width}: calculator overflow`)
-    results.push({ width, layout: 'passed', credentials: 9, publishedSnapshots: 5, dialog: 'passed', founderFigures: 'passed' })
+    results.push({ width, layout: 'passed', credentials: directoryUrls.length, publishedSnapshots: 5, dialog: 'passed', founderFigures: 'passed' })
   }
   await evaluate(client, `const field=document.querySelector('#roi-calculator input[type="number"]');field.focus();field.select()`)
   await client.send('Input.insertText', { text: '1' })

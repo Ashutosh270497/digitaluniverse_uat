@@ -39,8 +39,8 @@ const createAmazonCredentialsHtml = () => [
 ].join('')
 
 const createStaticSearchShell = (route) => {
-  const actionHref = route.kind === 'contact' ? '/' : '/contact'
-  const actionLabel = route.kind === 'contact' ? 'Return to homepage' : 'Request My Free Amazon Audit'
+  const actionHref = route.kind === 'ai-services' ? '/contact#ai-project' : route.kind === 'contact' ? '/' : '/contact'
+  const actionLabel = route.kind === 'ai-services' ? 'Discuss an AI project' : route.kind === 'contact' ? 'Return to homepage' : 'Request My Free Amazon Audit'
 
   return [
     '<div id="root">',

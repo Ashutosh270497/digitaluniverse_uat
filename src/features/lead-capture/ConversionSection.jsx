@@ -10,7 +10,7 @@ const ConversionSection = () => (
           Start with an Amazon account diagnosis
         </h2>
         <p className="mt-2 max-w-2xl text-gray-300">
-          Share your store or ASIN so the proposed scope can reflect the account you actually operate.
+          Share your contact details and monthly revenue range to start a conversation about your Amazon growth priorities.
         </p>
       </div>
       <a

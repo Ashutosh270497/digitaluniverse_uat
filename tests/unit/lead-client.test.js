@@ -6,7 +6,7 @@ const payload = {
   name: 'A Seller',
   contactMethod: 'email',
   contact: 'seller@example.com',
-  amazonUrl: 'https://www.amazon.com/dp/B0EXAMPLE1',
+  revenueCurrency: 'USD',
   monthlyRevenue: '10k-50k',
 };
 

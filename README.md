@@ -88,22 +88,23 @@ Vite uses `src/` as its root. Environment files, tool configuration, `public/`, 
 
 Defined in `src/pages/home/HomePage.jsx`:
 
-1. Sticky header
-2. Recorded four-message typewriter hero and canonical audit form
+1. Sticky header, including a link to the separate AI Services page
+2. Recorded four-message typewriter hero and audit form (USD / INR / GBP; no Amazon URL field)
 3. Official Amazon SPN trust bar
 4. Region-separated selected client brands
 5. Founder-reported performance figures
 6. Six concise Amazon service cards
-7. AI solutions introduction, six capability cards and project enquiry links
-8. Two featured sales snapshots, three more in an expandable gallery
-9. Visible growth calculator, loaded as it approaches the viewport
-10. Four-step process
-11. Founder introduction
-12. Three client testimonials with expandable full quotes
-13. Interactive marketplace explorer with region selection, partner links, zoom, continuous connection animation and a guided tour
-14. Eight-question FAQ covering Amazon enquiries, AI services and calculator assumptions
-15. Yellow closing panel with Amazon audit and AI project enquiry paths
-16. Footer
+7. Two featured sales snapshots, three more in an expandable gallery
+8. Growth calculator, loaded as it approaches the viewport
+9. Four-step process
+10. Founder introduction
+11. Three client testimonials with expandable full quotes
+12. Interactive marketplace explorer and regional partner links
+13. Eight-question Amazon FAQ
+14. Amazon growth audit closing panel
+15. Footer
+
+AI services now live at `/ai-services`, with all six capabilities and their existing project enquiry links. Old `/#ai-*` links forward to the new page. `/amazon-spn` presents the four founder-supplied India listings and is the destination of “Explore Our SPN Page”.
 
 See [the interactive map](docs/interactive-marketplace-map.md) and [UI refresh verification](docs/ui-refresh-implementation.md) for the September 2026 changes and deferred launch configuration.
 
