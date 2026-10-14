@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 import { PROCESS_STEPS, SERVICES } from '../../content/serviceContent.ts';
 import { MARKETING_ROUTES, SERVICE_PAGE_PATHS } from '../../config/routes.js';
 import SpnServiceLinks from '../../components/ui/SpnServiceLinks.jsx';
@@ -23,6 +23,9 @@ const ServicePage = ({ route }) => {
   const service = SERVICES.find((item) => item.id === route.serviceId);
   const pageContent = service.pageContent ?? {};
   const processSteps = pageContent.processSteps ?? PROCESS_STEPS;
+  const outcomeNote = pageContent.outcomeNote === undefined
+    ? 'The proposal must define the baseline, measures, time period, responsibilities, and limits. Targets are not guarantees.'
+    : pageContent.outcomeNote;
   const relatedServices = SERVICES.filter(
     (item) => item.id !== service.id && SERVICE_PAGE_PATHS[item.id],
   ).slice(0, 3);
@@ -39,10 +42,24 @@ const ServicePage = ({ route }) => {
             {service.title}
           </p>
           <h1 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">{seoRoute.h1}</h1>
-          <p className="mt-6 max-w-3xl text-lg leading-relaxed text-gray-300">{service.summary}</p>
-          <p className="mt-4 max-w-3xl leading-relaxed text-gray-300">
-            <span className="font-extrabold text-white">{pageContent.audienceLabel ?? 'Who it is for:'}</span> {service.whoItIsFor}
-          </p>
+          <p className="mt-6 max-w-3xl text-lg leading-relaxed text-gray-300">{pageContent.heroSummary ?? service.summary}</p>
+          {pageContent.audienceList ? (
+            <div className="mt-8 max-w-4xl" data-service-audience>
+              <h2 className="text-lg font-extrabold text-white">{pageContent.audienceLabel}</h2>
+              <ul className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2">
+                {pageContent.audienceList.map((item) => (
+                  <li key={item} className="flex gap-3 leading-relaxed text-gray-300">
+                    <Check className="mt-1 h-4 w-4 shrink-0 text-primary-300" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="mt-4 max-w-3xl leading-relaxed text-gray-300">
+              <span className="font-extrabold text-white">{pageContent.audienceLabel ?? 'Who it is for:'}</span> {service.whoItIsFor}
+            </p>
+          )}
           {service.spnServiceKey && (
             <div className="mt-7">
               <SpnServiceLinks serviceKey={service.spnServiceKey} heading={pageContent.spnHeading} dark />
@@ -64,11 +81,8 @@ const ServicePage = ({ route }) => {
             <p className="mt-5 text-lg leading-relaxed text-gray-700">{service.primaryOutcome}</p>
             {pageContent.outcomeBenefits ? (
               <BulletList items={pageContent.outcomeBenefits} />
-            ) : (
-              <p className="mt-4 leading-relaxed text-gray-600">
-                The proposal must define the baseline, measures, time period, responsibilities, and limits.
-                Targets are not guarantees.
-              </p>
+            ) : outcomeNote && (
+              <p className="mt-4 leading-relaxed text-gray-600">{outcomeNote}</p>
             )}
           </div>
         </div>
@@ -85,7 +99,8 @@ const ServicePage = ({ route }) => {
                 {pageContent.deliverableGroups.map((group) => (
                   <div key={group.title} data-deliverable-group className="rounded-2xl border border-primary-200 bg-white p-5">
                     <h3 className="text-lg font-extrabold leading-snug text-amazon-dark">{group.title}</h3>
-                    <BulletList items={group.items} />
+                    {group.description && <p className="mt-2 leading-relaxed text-gray-700">{group.description}</p>}
+                    {group.items && <BulletList items={group.items} />}
                   </div>
                 ))}
               </div>
@@ -102,7 +117,7 @@ const ServicePage = ({ route }) => {
             <p className="mt-3 leading-relaxed">
               {pageContent.strategy?.description ?? 'Your written proposal sets out the services, reporting, fees, timelines and responsibilities for your engagement. Discuss your priorities with us to define the right scope.'}
             </p>
-            {pageContent.strategy && (
+            {pageContent.strategy?.ctaLabel && (
               <a
                 href={PRIMARY_AUDIT_ROUTE}
                 data-service-audit-cta
