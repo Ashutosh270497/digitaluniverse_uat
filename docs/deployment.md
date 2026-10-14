@@ -46,6 +46,7 @@ Resend setup steps are in [lead-funnel.md](lead-funnel.md).
 | --- | --- |
 | `RESEND_API_KEY` | Resend API key (email alert) |
 | `LEAD_EMAIL_TO` | Inbox for lead emails; the Resend account email unless a domain is verified |
+| `LEAD_CONFIRMATION_FROM` | Optional. Enables the visitor confirmation email; needs a Resend-verified domain |
 | `LEAD_WEBHOOK_URL` | Optional approved HTTPS CRM/webhook endpoint |
 | `LEAD_WEBHOOK_BEARER_TOKEN` | Destination token, only if required |
 | `LEAD_ALLOWED_ORIGINS` | `https://digitaluniversepro.co` |

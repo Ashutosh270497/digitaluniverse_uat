@@ -1,4 +1,4 @@
-# Digital Universe Pro controlled CRO framework
+# Digital Universe controlled CRO framework
 
 Status as of 2026-08-27: **framework implemented; every production experiment dormant**
 

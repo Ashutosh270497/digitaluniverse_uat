@@ -40,7 +40,7 @@ test('privacy policy publishes the supplied content and real contact links', asy
     'utf8',
   );
 
-  assert.match(source, /At Digital Universe Pro, we respect your privacy/);
+  assert.match(source, /At Digital Universe, we respect your privacy/);
   assert.match(source, /Information We Collect/);
   assert.match(source, /How We Use Your Information/);
   assert.match(source, /Information Sharing/);

@@ -341,7 +341,7 @@ export interface ClientTestimonial {
 }
 
 const legacySourceExplanation =
-  'This attribution and date were present on the previously published Digital Universe Pro website; the repository does not contain the original review record.';
+  'This attribution and date were present on the previously published Digital Universe website; the repository does not contain the original review record.';
 
 // Quotes are carried over verbatim from the previously published homepage. No
 // brand, role, logo or review-platform relationship is inferred.

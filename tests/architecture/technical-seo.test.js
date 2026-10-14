@@ -46,7 +46,7 @@ test('homepage uses the required title and complete static hero heading', () => 
 
   assert.equal(
     homepage.title,
-    'Amazon Growth & Marketplace Services | Digital Universe Pro',
+    'Amazon Growth & Marketplace Services | Digital Universe',
   );
   assert.equal(
     homepage.h1,

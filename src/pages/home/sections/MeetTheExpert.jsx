@@ -5,7 +5,7 @@ const MeetTheExpert = () => (
   <section id="about" aria-labelledby="about-heading" className="section-space bg-amazon-cream">
     <div className="section-shell grid items-center gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
       <div className="founder-portrait relative mx-auto w-full max-w-sm">
-        <img src={expertPhotoSmall} srcSet={`${expertPhotoSmall} 600w, ${expertPhotoLarge} 1067w`} sizes="(min-width: 1024px) 384px, 85vw" alt="Gautam Soni, founder of Digital Universe Pro" width="1067" height="1600" loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-2xl object-cover object-center" />
+        <img src={expertPhotoSmall} srcSet={`${expertPhotoSmall} 600w, ${expertPhotoLarge} 1067w`} sizes="(min-width: 1024px) 384px, 85vw" alt="Gautam Soni, founder of Digital Universe" width="1067" height="1600" loading="lazy" decoding="async" className="aspect-[4/5] w-full rounded-2xl object-cover object-center" />
         <div className="absolute bottom-4 left-4 right-4 rounded-xl bg-amazon-dark/95 px-5 py-4 text-white"><p className="font-bold">Gautam Soni</p><p className="mt-1 text-sm text-primary-300">Founder · Amazon Marketplace Strategist</p></div>
       </div>
       <div>

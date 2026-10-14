@@ -11,7 +11,7 @@ import { getSeoRoute } from '../../config/seo.js';
 const ContactPage = ({ requestedService }) => {
   const seoRoute = getSeoRoute(MARKETING_ROUTES.contact.path);
   const whatsappUrl = getWhatsAppUrl(
-    'Hello, I would like to discuss a free Amazon audit with Digital Universe Pro.',
+    'Hello, I would like to discuss a free Amazon audit with Digital Universe.',
   );
 
   return (
@@ -23,7 +23,7 @@ const ContactPage = ({ requestedService }) => {
             className="text-gray-300"
           />
           <p className="mt-10 text-sm font-extrabold uppercase tracking-[0.18em] text-primary-300">
-            Contact Digital Universe Pro
+            Contact Digital Universe
           </p>
           <h1 className="mt-4 text-4xl font-black sm:text-5xl">{seoRoute.h1}</h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-gray-300">
@@ -63,7 +63,7 @@ const ContactPage = ({ requestedService }) => {
                 className="flex items-center gap-3 font-bold text-primary-900 underline underline-offset-4"
               >
                 <MessageCircle className="h-5 w-5" aria-hidden="true" />
-                WhatsApp Digital Universe Pro
+                WhatsApp Digital Universe
               </a>
             </div>
             <p className="mt-7 leading-relaxed text-gray-600">Please share only the information needed for your enquiry. Do not send account passwords or sensitive customer data.</p>

@@ -1,71 +1,87 @@
-import { ArrowRight, CalendarDays, CheckCircle2, LoaderCircle, MessageCircle } from 'lucide-react';
+import { ArrowRight, Check, Clock, LoaderCircle, Lock, Mail, MessageCircle } from 'lucide-react';
 import { CONTACT_METHODS, REVENUE_CURRENCIES, getMonthlyRevenueOptions } from '../../../shared/leadSchema.js';
 import { LEAD_FUNNEL_CONFIG } from './config.js';
 import { PRIMARY_AUDIT_FIRST_FIELD_ID, PRIMARY_AUDIT_FORM_ID, PRIMARY_CTA_LABEL } from './primaryCta.js';
 import { ANALYTICS_EVENTS, trackAnalyticsEvent, trackContactClick } from '../../analytics/index.js';
 import LegalConsent from './LegalConsent.jsx';
-import { useAuditForm } from './useAuditForm.js';
+import AuditDetailsFields from './AuditDetailsFields.jsx';
+import AuditSuccess from './AuditSuccess.jsx';
+import AuditDone from './AuditDone.jsx';
+import { DIAL_CODES } from './dialCodes.js';
+import { errorClassName, hintClassName, inputClassName, labelClassName, optionClassName } from './formStyles.js';
+import { AUDIT_STAGES, useAuditForm } from './useAuditForm.js';
+import './lead-capture.css';
 
 const getDescribedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;
 
+const CONTACT_OPTIONS = [
+  { value: CONTACT_METHODS.email, label: 'Work email', icon: <Mail className="h-4 w-4" aria-hidden="true" /> },
+  { value: CONTACT_METHODS.whatsapp, label: 'WhatsApp', icon: <MessageCircle className="h-4 w-4" aria-hidden="true" /> },
+];
+
+const TRUST_POINTS = ['Free, no obligation', 'No Seller Central password needed', 'Reply on your chosen channel'];
+
+const StepMeta = ({ label, duration }) => (
+  <div className="mb-3 flex flex-wrap items-center gap-3">
+    <span className="rounded-full bg-primary-100 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-[0.08em] text-primary-900">{label}</span>
+    <span className="inline-flex items-center gap-1 text-[13px] font-medium text-gray-500">
+      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+      {duration}
+    </span>
+  </div>
+);
+
 const AuditForm = ({ formLocation = 'unspecified' }) => {
   const {
-    formData, errors, status, statusMessage, isSubmitting, isSuccess, contactIsWhatsApp,
-    whatsappUrl, fieldIds, collectMonthlyRevenue, handleSubmit, markFormStarted,
-    handleFieldChange, handleContactMethodChange,
+    formData, details, errors, stage, status, statusMessage, isSubmitting, contactIsWhatsApp,
+    submittedLead, sharedDetails, whatsappUrl, fieldIds, collectMonthlyRevenue,
+    handleSubmit, markFormStarted, handleFieldChange, handleContactMethodChange,
+    handleDetailsChange, toggleDetailsValue, openDetails, skipDetails,
   } = useAuditForm(formLocation);
-
-  const inputClass = (hasError) => [
-    'mt-2 w-full rounded-lg border bg-white px-4 py-3 font-medium text-gray-900 shadow-sm outline-none transition-colors',
-    'focus:ring-2 focus:ring-primary-600/30',
-    hasError ? 'border-red-600 focus:border-red-600' : 'border-gray-300 focus:border-primary-600',
-  ].join(' ');
+  const isDetails = stage === AUDIT_STAGES.details;
+  const trackSuccessWhatsApp = () => trackContactClick('whatsapp', 'audit_form_success');
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-6 text-gray-900 shadow-xl md:p-7">
-      {isSuccess ? (
-        <div role="status" aria-live="polite" className="flex min-h-[32rem] flex-col justify-center">
-          <CheckCircle2 className="h-12 w-12 text-green-700" aria-hidden="true" />
-          <h2 className="mt-5 text-2xl font-bold tracking-tight text-amazon-dark">
-            We received your audit request.
-          </h2>
-          <p className="mt-3 leading-relaxed text-gray-700">{statusMessage}</p>
-          <p className="mt-3 leading-relaxed text-gray-700">
-            Next, the team will review the account details you submitted and contact you through your selected method.
-          </p>
+      {stage === AUDIT_STAGES.success && (
+        <AuditSuccess
+          lead={submittedLead}
+          onAddDetails={submittedLead.leadId ? openDetails : undefined}
+          whatsappUrl={whatsappUrl}
+          onWhatsAppClick={trackSuccessWhatsApp}
+        />
+      )}
 
-          {LEAD_FUNNEL_CONFIG.bookingCalendarUrl && (
-            <a
-              href={LEAD_FUNNEL_CONFIG.bookingCalendarUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackAnalyticsEvent(ANALYTICS_EVENTS.calendarOpen, {
-                cta_location: 'audit_form_success',
-                form_location: formLocation,
-                calendar_provider: 'configured_calendar',
-              })}
-              className="mt-7 inline-flex items-center justify-center gap-2 rounded-lg bg-primary-500 px-6 py-4 font-extrabold text-amazon-dark hover:bg-primary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
-            >
-              <CalendarDays className="h-5 w-5" aria-hidden="true" />
-              Book the next conversation
-            </a>
-          )}
+      {stage === AUDIT_STAGES.done && (
+        <AuditDone
+          lead={submittedLead}
+          summary={sharedDetails}
+          bookingCalendarUrl={LEAD_FUNNEL_CONFIG.bookingCalendarUrl}
+          onCalendarClick={() => trackAnalyticsEvent(ANALYTICS_EVENTS.calendarOpen, {
+            cta_location: 'audit_form_success',
+            form_location: formLocation,
+            calendar_provider: 'configured_calendar',
+          })}
+          whatsappUrl={whatsappUrl}
+          onWhatsAppClick={trackSuccessWhatsApp}
+        />
+      )}
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackContactClick('whatsapp', 'audit_form_success')}
-            className="mt-3 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-6 py-3.5 font-bold text-amazon-dark hover:border-green-700 hover:text-green-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2"
-          >
-            <MessageCircle className="h-5 w-5" aria-hidden="true" />
-            Continue on WhatsApp
-          </a>
-        </div>
-      ) : (
+      {(stage === AUDIT_STAGES.form || isDetails) && (
         <>
-          <h2 className="text-2xl font-bold tracking-tight text-amazon-dark">Get Your Free Amazon Growth Audit</h2>
-          <p className="mt-2 text-gray-600">Share your contact details and revenue range. We&apos;ll help identify opportunities to improve your Amazon visibility, conversion and sales.</p>
+          {isDetails ? (
+            <>
+              <StepMeta label="Step 2 of 2 · Optional" duration="About 1 minute" />
+              <h2 className="text-2xl font-bold tracking-tight text-amazon-dark">Help us prepare your audit</h2>
+              <p className="mt-2 text-gray-600">These details let us review your store before we talk. Skip anything you&apos;re unsure about.</p>
+            </>
+          ) : (
+            <>
+              <StepMeta label="Step 1 of 2" duration="Takes about 30 seconds" />
+              <h2 className="text-2xl font-bold tracking-tight text-amazon-dark">Get Your Free Amazon Growth Audit</h2>
+              <p className="mt-2 text-gray-600">Share your contact details and revenue range. We&apos;ll help identify opportunities to improve your Amazon visibility, conversion and sales.</p>
+            </>
+          )}
 
           <form
             id={PRIMARY_AUDIT_FORM_ID}
@@ -91,139 +107,169 @@ const AuditForm = ({ formLocation = 'unspecified' }) => {
               </div>
             )}
 
-            <div>
-              <label htmlFor={PRIMARY_AUDIT_FIRST_FIELD_ID} className="block text-sm font-extrabold text-gray-800">
-                Name <span aria-hidden="true">*</span>
-              </label>
-              <input
-                type="text"
-                id={PRIMARY_AUDIT_FIRST_FIELD_ID}
-                name="name"
-                autoComplete="name"
-                autoCapitalize="words"
-                enterKeyHint="next"
-                required
-                value={formData.name}
-                onChange={handleFieldChange}
-                aria-invalid={Boolean(errors.name)}
-                aria-describedby={errors.name ? 'primary-audit-name-error' : undefined}
-                className={inputClass(errors.name)}
+            {isDetails ? (
+              <AuditDetailsFields
+                details={details}
+                errors={errors}
+                revenueCurrency={submittedLead?.revenueCurrency || formData.revenueCurrency}
+                onChange={handleDetailsChange}
+                onToggle={toggleDetailsValue}
               />
-              {errors.name && (
-                <p id="primary-audit-name-error" className="mt-1.5 text-sm font-semibold text-red-700">{errors.name}</p>
-              )}
-            </div>
-
-            <fieldset>
-              <legend className="block text-sm font-extrabold text-gray-800">
-                Work email or WhatsApp number <span aria-hidden="true">*</span>
-              </legend>
-              <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
-                <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700">
+            ) : (
+              <>
+                <div>
+                  <label htmlFor={PRIMARY_AUDIT_FIRST_FIELD_ID} className={labelClassName}>
+                    Name <span aria-hidden="true">*</span>
+                  </label>
                   <input
-                    type="radio"
-                    name="contactMethod"
-                    value={CONTACT_METHODS.email}
-                    checked={!contactIsWhatsApp}
-                    onChange={handleContactMethodChange}
-                    className="h-4 w-4 accent-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
+                    type="text"
+                    id={PRIMARY_AUDIT_FIRST_FIELD_ID}
+                    name="name"
+                    autoComplete="name"
+                    autoCapitalize="words"
+                    enterKeyHint="next"
+                    required
+                    value={formData.name}
+                    onChange={handleFieldChange}
+                    aria-invalid={Boolean(errors.name)}
+                    aria-describedby={errors.name ? 'primary-audit-name-error' : undefined}
+                    className={inputClassName(errors.name)}
                   />
-                  Work email
-                </label>
-                <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700">
-                  <input
-                    type="radio"
-                    name="contactMethod"
-                    value={CONTACT_METHODS.whatsapp}
-                    checked={contactIsWhatsApp}
-                    onChange={handleContactMethodChange}
-                    className="h-4 w-4 accent-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
-                  />
-                  WhatsApp
-                </label>
-              </div>
-              <label htmlFor={fieldIds.contact} className="sr-only">
-                {contactIsWhatsApp ? 'WhatsApp number with country code' : 'Work email'}
-              </label>
-              <input
-                type={contactIsWhatsApp ? 'tel' : 'email'}
-                inputMode={contactIsWhatsApp ? 'tel' : 'email'}
-                id={fieldIds.contact}
-                name="contact"
-                autoComplete={contactIsWhatsApp ? 'tel' : 'email'}
-                autoCapitalize="none"
-                spellCheck="false"
-                enterKeyHint="next"
-                required
-                value={formData.contact}
-                onChange={handleFieldChange}
-                aria-invalid={Boolean(errors.contact)}
-                aria-describedby={getDescribedBy(
-                  contactIsWhatsApp ? 'primary-audit-contact-hint' : '',
-                  errors.contact ? 'primary-audit-contact-error' : '',
-                )}
-                className={inputClass(errors.contact)}
-              />
-              {contactIsWhatsApp && (
-                <p id="primary-audit-contact-hint" className="mt-1.5 text-sm text-gray-600">
-                  Include the country code, for example +91.
-                </p>
-              )}
-              {errors.contact && (
-                <p id="primary-audit-contact-error" className="mt-1.5 text-sm font-semibold text-red-700">{errors.contact}</p>
-              )}
-            </fieldset>
+                  {errors.name && (
+                    <p id="primary-audit-name-error" className={errorClassName}>{errors.name}</p>
+                  )}
+                </div>
 
-            {collectMonthlyRevenue && (
-              <div className="space-y-4">
-                <fieldset aria-describedby={errors.revenueCurrency ? 'primary-audit-currency-error' : undefined}>
-                  <legend className="text-sm font-extrabold text-gray-800">Revenue currency <span aria-hidden="true">*</span></legend>
-                  <div className="mt-2 grid grid-cols-3 gap-2">
-                    {REVENUE_CURRENCIES.map(currency => (
-                      <label key={currency.code} className="relative cursor-pointer">
+                <fieldset>
+                  <legend className={labelClassName}>
+                    Work email or WhatsApp number <span aria-hidden="true">*</span>
+                  </legend>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {CONTACT_OPTIONS.map(({ value, label, icon }) => (
+                      <label key={value} className="relative cursor-pointer">
                         <input
                           type="radio"
-                          id={`primary-audit-currency-${currency.code.toLowerCase()}`}
-                          name="revenueCurrency"
-                          value={currency.code}
-                          checked={formData.revenueCurrency === currency.code}
-                          onChange={handleFieldChange}
-                          required
-                          aria-invalid={Boolean(errors.revenueCurrency)}
-                          aria-describedby={errors.revenueCurrency ? 'primary-audit-currency-error' : undefined}
+                          name="contactMethod"
+                          value={value}
+                          checked={formData.contactMethod === value}
+                          onChange={handleContactMethodChange}
                           className="peer sr-only"
                         />
-                        <span className="flex min-h-12 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-2 py-3 text-sm font-bold text-gray-700 transition-colors peer-checked:border-primary-700 peer-checked:bg-primary-100 peer-checked:text-primary-900 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-700">
-                          <span aria-hidden="true">{currency.symbol}</span>{currency.code}<span className="sr-only"> — {currency.label}</span>
+                        <span className={optionClassName}>
+                          {icon}
+                          {label}
                         </span>
                       </label>
                     ))}
                   </div>
-                  {errors.revenueCurrency && <p id="primary-audit-currency-error" className="mt-1.5 text-sm font-semibold text-red-700">{errors.revenueCurrency}</p>}
+                  <div className={contactIsWhatsApp ? 'mt-2 flex gap-2' : undefined}>
+                    {contactIsWhatsApp && (
+                      <>
+                        <label htmlFor="primary-audit-dial-code" className="sr-only">Country code</label>
+                        <select
+                          id="primary-audit-dial-code"
+                          name="dialCode"
+                          value={formData.dialCode}
+                          onChange={handleFieldChange}
+                          autoComplete="tel-country-code"
+                          className="w-28 shrink-0 rounded-lg border border-gray-300 bg-white px-2 py-3 font-semibold text-gray-900 shadow-sm outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-600/30"
+                        >
+                          {DIAL_CODES.map((dial) => (
+                            <option key={dial.country} value={dial.code}>
+                              {dial.code ? `${dial.flag} ${dial.code}` : `${dial.flag} Other`}
+                            </option>
+                          ))}
+                        </select>
+                      </>
+                    )}
+                    <label htmlFor={fieldIds.contact} className="sr-only">
+                      {contactIsWhatsApp ? 'WhatsApp number' : 'Work email'}
+                    </label>
+                    <input
+                      type={contactIsWhatsApp ? 'tel' : 'email'}
+                      inputMode={contactIsWhatsApp ? 'tel' : 'email'}
+                      id={fieldIds.contact}
+                      name="contact"
+                      autoComplete={contactIsWhatsApp ? (formData.dialCode ? 'tel-national' : 'tel') : 'email'}
+                      autoCapitalize="none"
+                      spellCheck="false"
+                      enterKeyHint="next"
+                      required
+                      placeholder={contactIsWhatsApp ? (formData.dialCode ? '97924 20796' : '+971 50 123 4567') : 'you@yourbrand.com'}
+                      value={formData.contact}
+                      onChange={handleFieldChange}
+                      aria-invalid={Boolean(errors.contact)}
+                      aria-describedby={getDescribedBy(
+                        contactIsWhatsApp ? 'primary-audit-contact-hint' : '',
+                        errors.contact ? 'primary-audit-contact-error' : '',
+                      )}
+                      className={inputClassName(errors.contact, { inline: contactIsWhatsApp })}
+                    />
+                  </div>
+                  {contactIsWhatsApp && (
+                    <p id="primary-audit-contact-hint" className={hintClassName}>
+                      {formData.dialCode
+                        ? 'We’ll message you on WhatsApp — no spam, ever.'
+                        : 'Include your country code, for example +971.'}
+                    </p>
+                  )}
+                  {errors.contact && (
+                    <p id="primary-audit-contact-error" className={errorClassName}>{errors.contact}</p>
+                  )}
                 </fieldset>
-                <div>
-                  <label htmlFor={fieldIds.monthlyRevenue} className="block text-sm font-extrabold text-gray-800">
-                    Monthly Amazon revenue range <span aria-hidden="true">*</span>
-                  </label>
-                  <select
-                    id={fieldIds.monthlyRevenue}
-                    name="monthlyRevenue"
-                    required
-                    value={formData.monthlyRevenue}
-                    onChange={handleFieldChange}
-                    aria-invalid={Boolean(errors.monthlyRevenue)}
-                    aria-describedby={getDescribedBy('primary-audit-monthly-revenue-hint', errors.monthlyRevenue ? 'primary-audit-monthly-revenue-error' : '')}
-                    className={inputClass(errors.monthlyRevenue)}
-                  >
-                    <option value="">Select the closest range</option>
-                    {getMonthlyRevenueOptions(formData.revenueCurrency).map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-                  </select>
-                  <p id="primary-audit-monthly-revenue-hint" className="mt-1.5 text-sm text-gray-600" aria-live="polite">
-                    Select your approximate monthly revenue in {formData.revenueCurrency}. Choose a new range when switching currencies.
-                  </p>
-                  {errors.monthlyRevenue && <p id="primary-audit-monthly-revenue-error" className="mt-1.5 text-sm font-semibold text-red-700">{errors.monthlyRevenue}</p>}
-                </div>
-              </div>
+
+                {collectMonthlyRevenue && (
+                  <div className="space-y-4">
+                    <fieldset aria-describedby={errors.revenueCurrency ? 'primary-audit-currency-error' : undefined}>
+                      <legend className={labelClassName}>Revenue currency <span aria-hidden="true">*</span></legend>
+                      <div className="mt-2 grid grid-cols-3 gap-2">
+                        {REVENUE_CURRENCIES.map(currency => (
+                          <label key={currency.code} className="relative cursor-pointer">
+                            <input
+                              type="radio"
+                              id={`primary-audit-currency-${currency.code.toLowerCase()}`}
+                              name="revenueCurrency"
+                              value={currency.code}
+                              checked={formData.revenueCurrency === currency.code}
+                              onChange={handleFieldChange}
+                              required
+                              aria-invalid={Boolean(errors.revenueCurrency)}
+                              aria-describedby={errors.revenueCurrency ? 'primary-audit-currency-error' : undefined}
+                              className="peer sr-only"
+                            />
+                            <span className={optionClassName}>
+                              <span aria-hidden="true">{currency.symbol}</span>{currency.code}<span className="sr-only"> — {currency.label}</span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                      {errors.revenueCurrency && <p id="primary-audit-currency-error" className={errorClassName}>{errors.revenueCurrency}</p>}
+                    </fieldset>
+                    <div>
+                      <label htmlFor={fieldIds.monthlyRevenue} className={labelClassName}>
+                        Monthly Amazon revenue range <span aria-hidden="true">*</span>
+                      </label>
+                      <select
+                        id={fieldIds.monthlyRevenue}
+                        name="monthlyRevenue"
+                        required
+                        value={formData.monthlyRevenue}
+                        onChange={handleFieldChange}
+                        aria-invalid={Boolean(errors.monthlyRevenue)}
+                        aria-describedby={getDescribedBy('primary-audit-monthly-revenue-hint', errors.monthlyRevenue ? 'primary-audit-monthly-revenue-error' : '')}
+                        className={inputClassName(errors.monthlyRevenue)}
+                      >
+                        <option value="">Select the closest range</option>
+                        {getMonthlyRevenueOptions(formData.revenueCurrency).map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                      </select>
+                      <p id="primary-audit-monthly-revenue-hint" className={hintClassName} aria-live="polite">
+                        Select your approximate monthly revenue in {formData.revenueCurrency}. Choose a new range when switching currencies.
+                      </p>
+                      {errors.monthlyRevenue && <p id="primary-audit-monthly-revenue-error" className={errorClassName}>{errors.monthlyRevenue}</p>}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             <div aria-hidden="true" className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden">
@@ -251,25 +297,54 @@ const AuditForm = ({ formLocation = 'unspecified' }) => {
                 </>
               ) : (
                 <>
-                  {PRIMARY_CTA_LABEL}
+                  {isDetails ? 'Send details' : PRIMARY_CTA_LABEL}
                   <ArrowRight className="h-5 w-5" aria-hidden="true" />
                 </>
               )}
             </button>
 
-            <LegalConsent className="pt-1 text-gray-600" />
+            {isDetails ? (
+              <>
+                <button
+                  type="button"
+                  onClick={skipDetails}
+                  disabled={isSubmitting}
+                  className="mx-auto block min-h-11 rounded-lg px-3 text-sm font-semibold text-gray-600 underline underline-offset-4 hover:text-amazon-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-700"
+                >
+                  Skip for now
+                </button>
+                <p className="flex gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-xs leading-relaxed text-gray-600">
+                  <Lock className="mt-0.5 h-4 w-4 shrink-0 text-gray-500" aria-hidden="true" />
+                  We never ask for your Seller Central password. If we need access later, we&apos;ll request a limited user permission through Amazon.
+                </p>
+              </>
+            ) : (
+              <>
+                <ul className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[13px] font-medium text-gray-700">
+                  {TRUST_POINTS.map(point => (
+                    <li key={point} className="inline-flex items-center gap-1.5">
+                      <Check className="h-4 w-4 text-green-700" aria-hidden="true" />
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+                <LegalConsent className="pt-1 text-gray-600" />
+              </>
+            )}
           </form>
 
-          <a
-            href={whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackContactClick('whatsapp', `${formLocation}_form_secondary`)}
-            className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-2 text-sm font-semibold text-gray-700 underline underline-offset-4 hover:text-green-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2"
-          >
-            <MessageCircle className="h-5 w-5" aria-hidden="true" />
-            Contact us on WhatsApp instead
-          </a>
+          {!isDetails && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackContactClick('whatsapp', `${formLocation}_form_secondary`)}
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg px-2 text-sm font-semibold text-gray-700 underline underline-offset-4 hover:text-green-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 focus-visible:ring-offset-2"
+            >
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              Contact us on WhatsApp instead
+            </a>
+          )}
         </>
       )}
     </div>

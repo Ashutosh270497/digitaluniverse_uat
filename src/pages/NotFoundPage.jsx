@@ -11,7 +11,7 @@ const NotFoundPage = () => (
         href="/"
         className="mt-8 rounded-lg bg-primary-500 px-7 py-4 font-bold text-amazon-dark hover:bg-primary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-300"
       >
-        Return to Digital Universe Pro
+        Return to Digital Universe
       </a>
       <nav aria-label="Helpful pages" className="mt-8">
         <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm font-bold text-primary-300">

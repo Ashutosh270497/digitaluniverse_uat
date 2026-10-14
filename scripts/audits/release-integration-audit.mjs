@@ -136,7 +136,7 @@ const routeAudit = async (client) => {
       .filter((link) => !/noopener|noreferrer/.test(link.rel))
       .map((link) => link.href),
   })`)
-  assert.equal(legacyStatus.title, 'Audit Request Status | Digital Universe Pro')
+  assert.equal(legacyStatus.title, 'Audit Request Status | Digital Universe')
   assert.equal(legacyStatus.h1, 'Return to the audit form')
   assert.equal(legacyStatus.robots, 'noindex, nofollow')
   assert.deepEqual(legacyStatus.unsafeBlankLinks, [])
@@ -380,11 +380,11 @@ const formAudit = async (client) => {
     'form retry success state',
   )
   const success = await evaluate(client, `({
-    receipt: document.body.textContent.includes('QA delivery acknowledged.'),
+    personalised: document.body.textContent.includes('Thanks, Release!'),
     whatsapp: Boolean(document.querySelector('a[href^="https://wa.me/"]')),
     calendar: Boolean(document.querySelector('a[href*="calendar"], a[href*="calendly"]')),
   })`)
-  assert.equal(success.receipt, true)
+  assert.equal(success.personalised, true, 'success heading greets the visitor by first name')
   assert.equal(success.whatsapp, true)
   assert.equal(success.calendar, false, 'calendar remains absent without an approved URL')
 
@@ -404,10 +404,66 @@ const formAudit = async (client) => {
   })()`)
   await pressKey(client, 'Enter')
   assert.equal(
-    await waitForBrowserCondition(client, `document.body.textContent.includes('Keyboard QA delivery acknowledged.')`),
+    await waitForBrowserCondition(client, `document.body.textContent.includes('We received your audit request.')`),
     true,
     'keyboard form submission',
   )
+  assert.equal(
+    await evaluate(client, `Boolean([...document.querySelectorAll('button')].find((button) => button.textContent.includes('Help us prepare your audit')))`),
+    false,
+    'optional Step 2 is offered only when the API returns a lead ID',
+  )
+
+  await navigate(client, '/contact/?release_form=details#primary-audit-form')
+  assert.equal(
+    await waitForBrowserCondition(client, `Boolean(document.getElementById('primary-audit-form'))`),
+    true,
+    'details form reload',
+  )
+  await evaluate(client, setFormValuesExpression())
+  await evaluate(client, `(() => {
+    window.__qaRequests = [];
+    window.fetch = async (_url, options) => {
+      const body = JSON.parse(options.body);
+      window.__qaRequests.push(body);
+      return new Response(
+        JSON.stringify(body.stage === 'details'
+          ? { delivered: true, message: 'Details acknowledged.' }
+          : { delivered: true, message: 'Lead acknowledged.', leadId: 'DU-20261014-QA2C' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    };
+    document.getElementById('primary-audit-form').requestSubmit();
+  })()`)
+  assert.equal(
+    await waitForBrowserCondition(client, `Boolean([...document.querySelectorAll('button')].find((button) => button.textContent.includes('Help us prepare your audit')))`),
+    true,
+    'Step 2 invitation after a delivered lead',
+  )
+  await evaluate(client, `[...document.querySelectorAll('button')].find((button) => button.textContent.includes('Help us prepare your audit')).click()`)
+  assert.equal(
+    await waitForBrowserCondition(client, `document.activeElement?.id === 'audit-details-store'`),
+    true,
+    'Step 2 focuses the store field',
+  )
+  await evaluate(client, `(() => {
+    const store = document.getElementById('audit-details-store');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(store, 'amazon.in/stores/ReleaseQA');
+    store.dispatchEvent(new Event('input', { bubbles: true }));
+    document.getElementById('audit-details-marketplace-in').click();
+  })()`)
+  await wait(100)
+  await evaluate(client, `document.getElementById('primary-audit-form').requestSubmit()`)
+  assert.equal(
+    await waitForBrowserCondition(client, `document.body.textContent.includes('What you shared')`),
+    true,
+    'Step 2 completion summary',
+  )
+  const detailsRequest = await evaluate(client, `window.__qaRequests[1]`)
+  assert.equal(detailsRequest.stage, 'details')
+  assert.equal(detailsRequest.leadId, 'DU-20261014-QA2C')
+  assert.equal(detailsRequest.storeUrl, 'amazon.in/stores/ReleaseQA')
+  assert.deepEqual(detailsRequest.marketplaces, ['in'])
 }
 
 const revenueCurrencyAudit = async (client) => {

@@ -4,7 +4,7 @@ const testimonials = getFeaturedTestimonials(3);
 const Testimonials = () => (
   <section id="testimonials" aria-labelledby="testimonials-heading" className="section-space bg-white">
     <div className="section-shell">
-      <div className="home-section-intro"><div><p className="eyebrow">In our clients’ words</p><h2 id="testimonials-heading" className="section-title">Good work.<br />Lasting relationships.</h2></div><p className="home-section-description">The people behind the brands, on what it’s like to work with Digital Universe Pro.</p></div>
+      <div className="home-section-intro"><div><p className="eyebrow">In our clients’ words</p><h2 id="testimonials-heading" className="section-title">Good work.<br />Lasting relationships.</h2></div><p className="home-section-description">The people behind the brands, on what it’s like to work with Digital Universe.</p></div>
       <div className="mt-9 grid gap-5 lg:grid-cols-3">
         {testimonials.map(testimonial => {
           const excerpt = testimonial.quote.split(/(?<=\.) /)[0];

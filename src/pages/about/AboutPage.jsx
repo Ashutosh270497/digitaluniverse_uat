@@ -24,7 +24,7 @@ const AboutPage = () => {
           </p>
           <h1 className="mt-4 text-4xl font-black sm:text-5xl">{seoRoute.h1}</h1>
           <p className="mt-6 max-w-3xl text-lg leading-relaxed text-gray-300">
-            Digital Universe Pro brings together Amazon marketplace expertise and tailored AI solutions. From account growth to smarter business operations, we build around your goals and an agreed scope.
+            Digital Universe brings together Amazon marketplace expertise and tailored AI solutions. From account growth to smarter business operations, we build around your goals and an agreed scope.
           </p>
         </div>
       </section>
