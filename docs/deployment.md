@@ -35,15 +35,18 @@ noarchive`; this discourages indexing but is not access control. Use Vercel's
 deployment protection if the review must be private, with founder access enabled.
 
 No environment variables are needed to review the UI, navigation, AI enquiry
-links, map, or calculator. With no webhook configured, valid Amazon audit
+links, map, or calculator. With no delivery channel configured, valid Amazon audit
 submissions show a delivery error and offer WhatsApp. They cannot arrive in an
 inbox or CRM yet. Do not present that state as a working lead integration.
 
-For real audit delivery, set these in Vercel's environment settings, then redeploy:
+For real audit delivery, set these in Vercel's environment settings, then redeploy.
+Resend setup steps are in [lead-funnel.md](lead-funnel.md).
 
 | Variable | Value |
 | --- | --- |
-| `LEAD_WEBHOOK_URL` | Approved HTTPS CRM/webhook endpoint |
+| `RESEND_API_KEY` | Resend API key (email alert) |
+| `LEAD_EMAIL_TO` | Inbox for lead emails; the Resend account email unless a domain is verified |
+| `LEAD_WEBHOOK_URL` | Optional approved HTTPS CRM/webhook endpoint |
 | `LEAD_WEBHOOK_BEARER_TOKEN` | Destination token, only if required |
 | `LEAD_ALLOWED_ORIGINS` | `https://digitaluniversepro.co` |
 | `LEAD_RATE_LIMIT_SALT` | A stable random server-only secret |
@@ -69,7 +72,7 @@ Create an ignored `.env.production.local` containing the public API URL:
 VITE_LEAD_API_URL=https://YOUR-PROJECT.vercel.app/api/leads
 ```
 
-Replace `YOUR-PROJECT` with the real Vercel project hostname. Do not add webhook
+Replace `YOUR-PROJECT` with the real Vercel project hostname. Do not add delivery
 secrets to this file for the static frontend. Then:
 
 ```bash

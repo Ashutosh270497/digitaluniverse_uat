@@ -283,3 +283,130 @@ test('server rejects a range that belongs to another currency before delivery', 
   assert.equal(result.status, 422);
   assert.ok(result.body.errors.monthlyRevenue);
 });
+
+const notificationEnv = {
+  LEAD_ALLOWED_ORIGINS: 'https://digitaluniversepro.co',
+  LEAD_RATE_LIMIT_SALT: 'test-rate-limit-salt',
+  RESEND_API_KEY: ' re_test_key\n',
+  LEAD_EMAIL_TO: 'owner@example.com',
+};
+const isEmailCall = (url) => String(url) === 'https://api.resend.com/emails';
+
+test('email alert receives the lead', async () => {
+  const calls = [];
+  const result = await handleLeadSubmission(createRequest(validBody), {
+    env: notificationEnv,
+    now: () => NOW,
+    fetchImpl: async (url, options) => {
+      calls.push({ url: String(url), options });
+      return { ok: true, status: 200 };
+    },
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(result.body.delivered, true);
+  assert.equal(calls.length, 1);
+
+  const [email] = calls;
+  assert.ok(isEmailCall(email.url));
+  assert.equal(email.options.method, 'POST');
+  assert.equal(email.options.redirect, 'error');
+  assert.equal(email.options.headers.Authorization, 'Bearer re_test_key');
+  const message = JSON.parse(email.options.body);
+  assert.equal(message.from, 'Digital Universe Pro Leads <onboarding@resend.dev>');
+  assert.deepEqual(message.to, ['owner@example.com']);
+  assert.equal(message.reply_to, validBody.contact);
+  assert.equal(message.subject, 'New Amazon audit lead: A Seller');
+  assert.match(message.text, /Name: A Seller\nEmail: seller@example\.com/);
+  assert.match(message.text, /Monthly Amazon revenue: \$50,000–\$200,000/);
+  assert.match(message.text, /Received: 15 Jan 2027.*IST/);
+});
+
+test('WhatsApp leads include a chat link and no email reply-to', async () => {
+  const calls = [];
+  const body = {
+    ...validBody,
+    contactMethod: 'whatsapp',
+    contact: '+44 7700 900123',
+    revenueCurrency: 'INR',
+    monthlyRevenue: '1l-5l',
+  };
+  const result = await handleLeadSubmission(createRequest(body), {
+    env: notificationEnv,
+    now: () => NOW,
+    fetchImpl: async (url, options) => {
+      calls.push({ url: String(url), options });
+      return { ok: true, status: 200 };
+    },
+  });
+
+  assert.equal(result.status, 200);
+  const message = JSON.parse(calls.find(({ url }) => isEmailCall(url)).options.body);
+  assert.equal('reply_to' in message, false);
+  assert.match(message.text, /WhatsApp: \+44 7700 900123/);
+  assert.match(message.text, /Monthly Amazon revenue: ₹1,00,000–₹5,00,000/);
+  assert.match(message.text, /Chat: https:\/\/wa\.me\/447700900123/);
+});
+
+test('rejected email delivery is logged without lead values', async (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const result = await handleLeadSubmission(createRequest(validBody), {
+    env: notificationEnv,
+    now: () => NOW,
+    fetchImpl: async () => ({ ok: false, status: 403 }),
+  });
+
+  assert.equal(result.status, 502);
+  assert.equal(result.body.delivered, false);
+  assert.deepEqual(
+    warn.mock.calls.map(({ arguments: [line] }) => line),
+    ['Lead delivery via email failed (HTTP 403).'],
+  );
+});
+
+test('one confirmed channel is enough when another channel fails', async (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const result = await handleLeadSubmission(createRequest(validBody), {
+    env: { ...notificationEnv, LEAD_WEBHOOK_URL: 'https://crm.example.test/leads' },
+    now: () => NOW,
+    fetchImpl: async (url) => {
+      if (isEmailCall(url)) throw new Error('network down');
+      return { ok: true, status: 200 };
+    },
+  });
+
+  assert.equal(result.status, 200);
+  assert.equal(result.body.delivered, true);
+  assert.deepEqual(
+    warn.mock.calls.map(({ arguments: [line] }) => line),
+    ['Lead delivery via email failed (no response).'],
+  );
+});
+
+test('every channel failing returns a delivery failure', async (t) => {
+  t.mock.method(console, 'warn', () => {});
+  const result = await handleLeadSubmission(createRequest(validBody), {
+    env: { ...notificationEnv, LEAD_WEBHOOK_URL: 'https://crm.example.test/leads' },
+    now: () => NOW,
+    fetchImpl: async (url) => (isEmailCall(url) ? { ok: false, status: 403 } : { ok: false, status: 500 }),
+  });
+
+  assert.equal(result.status, 502);
+  assert.equal(result.body.delivered, false);
+});
+
+test('an email alert missing its key or recipient is not configured', async () => {
+  for (const env of [
+    { ...notificationEnv, LEAD_EMAIL_TO: ' ' },
+    { ...notificationEnv, RESEND_API_KEY: '' },
+  ]) {
+    resetLeadRateLimitsForTests();
+    const result = await handleLeadSubmission(createRequest(validBody), {
+      env,
+      now: () => NOW,
+      fetchImpl: () => assert.fail('an incomplete channel must not be called'),
+    });
+    assert.equal(result.status, 503);
+    assert.match(result.body.message, /not configured/i);
+  }
+});
