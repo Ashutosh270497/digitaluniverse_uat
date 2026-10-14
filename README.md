@@ -34,7 +34,7 @@ npm run preview
 npm run check
 ```
 
-This runs lint, typed-content checks, all unit/integration/architecture tests, a production build, SEO output verification, and deployment configuration/artifact checks. `npm run security:check` checks the locked dependencies against npm advisories. GitHub Actions runs these checks and the browser suites on pushes and pull requests. Individual commands remain available: `lint`, `type-check`, `test`, `build`, and `seo:verify`.
+This runs lint, typed-content checks, all unit/integration/architecture tests, a production build, SEO output verification, and deployment configuration/artifact checks. `npm run security:check` checks the locked dependencies against npm advisories. It fails on any advisory in dependencies shipped to visitors, and on any build-tool advisory not reviewed in `scripts/lib/auditPolicy.mjs`. GitHub Actions runs these checks and the browser suites on pushes and pull requests. Individual commands remain available: `lint`, `type-check`, `test`, `build`, and `seo:verify`.
 
 For browser checks, start `npm run preview` in another terminal, then run:
 
