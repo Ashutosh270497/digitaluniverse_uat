@@ -10,6 +10,10 @@ const ephemeralRateLimitSalt = randomBytes(32).toString('hex');
 const rateLimitStore = new Map();
 const REVENUE_FIELD_EXPERIMENT_ID = 'revenue_range_field';
 const TREATMENT_VARIANT = 'treatment';
+const LEAD_SOURCE = 'digital-universe-pro-free-amazon-audit';
+const RESEND_EMAILS_URL = 'https://api.resend.com/emails';
+// Resend's shared test sender only delivers to the Resend account's own email.
+const DEFAULT_LEAD_EMAIL_FROM = 'Digital Universe Pro Leads <onboarding@resend.dev>';
 
 const readHeader = (headers, name) => {
   if (typeof headers?.get === 'function') return headers.get(name) || '';
@@ -109,6 +113,89 @@ const getWebhookUrl = (env) => {
   } catch {
     return null;
   }
+};
+
+const getLeadEmailRecipients = (env) => String(env.LEAD_EMAIL_TO || '')
+  .split(',')
+  .map((email) => email.trim())
+  .filter(Boolean);
+
+const singleLine = (value) => value.replace(/\s+/g, ' ');
+
+const formatReceivedAt = (receivedAt) => `${new Intl.DateTimeFormat('en-IN', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+  timeZone: 'Asia/Kolkata',
+}).format(new Date(receivedAt))} IST`;
+
+const formatLeadLines = (lead) => {
+  const viaWhatsApp = lead.contactMethod === 'whatsapp';
+  return [
+    `Name: ${singleLine(lead.name)}`,
+    `${viaWhatsApp ? 'WhatsApp' : 'Email'}: ${singleLine(lead.contact)}`,
+    ...(lead.monthlyAmazonRevenueRangeLabel
+      ? [`Monthly Amazon revenue: ${lead.monthlyAmazonRevenueRangeLabel}`]
+      : []),
+    `Received: ${formatReceivedAt(lead.receivedAt)}`,
+    ...(viaWhatsApp ? [`Chat: https://wa.me/${lead.contact.replace(/\D/g, '')}`] : []),
+  ];
+};
+
+// Each configured channel receives the lead independently; any one confirmed
+// delivery means the lead reached the business.
+const getDeliveryChannels = (env) => {
+  const channels = [];
+
+  const webhookUrl = getWebhookUrl(env);
+  if (webhookUrl) {
+    channels.push({
+      name: 'webhook',
+      send: async (lead, { fetchImpl, signal }) => {
+        const headers = { 'Content-Type': 'application/json' };
+        if (env.LEAD_WEBHOOK_BEARER_TOKEN) {
+          headers.Authorization = `Bearer ${env.LEAD_WEBHOOK_BEARER_TOKEN}`;
+        }
+        const result = await fetchImpl(webhookUrl, {
+          method: 'POST',
+          redirect: 'error',
+          headers,
+          body: JSON.stringify(lead),
+          signal,
+        });
+        return { delivered: result.ok, status: result.status };
+      },
+    });
+  }
+
+  const emailRecipients = getLeadEmailRecipients(env);
+  // Pasted dashboard values often carry stray whitespace, which is invalid in a header.
+  const resendApiKey = String(env.RESEND_API_KEY || '').trim();
+  if (resendApiKey && emailRecipients.length > 0) {
+    channels.push({
+      name: 'email',
+      send: async (lead, { fetchImpl, signal }) => {
+        const result = await fetchImpl(RESEND_EMAILS_URL, {
+          method: 'POST',
+          redirect: 'error',
+          headers: {
+            Authorization: `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: env.LEAD_EMAIL_FROM || DEFAULT_LEAD_EMAIL_FROM,
+            to: emailRecipients,
+            subject: `New Amazon audit lead: ${singleLine(lead.name)}`,
+            text: ['New free Amazon audit request', '', ...formatLeadLines(lead)].join('\n'),
+            ...(lead.contactMethod === 'email' ? { reply_to: lead.contact } : {}),
+          }),
+          signal,
+        });
+        return { delivered: result.ok, status: result.status };
+      },
+    });
+  }
+
+  return channels;
 };
 
 const getLeadExperiment = (body, env) => {
@@ -216,8 +303,8 @@ export const handleLeadSubmission = async (
     }, corsHeaders);
   }
 
-  const webhookUrl = getWebhookUrl(env);
-  if (!webhookUrl) {
+  const channels = getDeliveryChannels(env);
+  if (channels.length === 0) {
     return response(503, {
       delivered: false,
       message: 'Audit delivery is not configured. Please use WhatsApp instead.',
@@ -231,47 +318,42 @@ export const handleLeadSubmission = async (
     }, corsHeaders);
   }
 
+  const lead = {
+    source: LEAD_SOURCE,
+    receivedAt: new Date(now()).toISOString(),
+    name: validation.data.name,
+    contactMethod: validation.data.contactMethod,
+    contact: validation.data.contact,
+    ...(validation.data.monthlyRevenue
+      ? {
+        monthlyAmazonRevenueRange: validation.data.monthlyRevenue,
+        monthlyAmazonRevenueCurrency: validation.data.revenueCurrency,
+        monthlyAmazonRevenueRangeLabel: getMonthlyRevenueOptions(validation.data.revenueCurrency).find(option => option.value === validation.data.monthlyRevenue).label,
+      }
+      : {}),
+    ...(leadExperiment ? { croExperiment: leadExperiment } : {}),
+  };
+
   const timeoutMs = asPositiveInteger(env.LEAD_WEBHOOK_TIMEOUT_MS, DEFAULT_WEBHOOK_TIMEOUT_MS);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  const webhookHeaders = { 'Content-Type': 'application/json' };
-  if (env.LEAD_WEBHOOK_BEARER_TOKEN) {
-    webhookHeaders.Authorization = `Bearer ${env.LEAD_WEBHOOK_BEARER_TOKEN}`;
-  }
-
-  let webhookResponse;
+  let outcomes;
   try {
-    webhookResponse = await fetchImpl(webhookUrl, {
-      method: 'POST',
-      redirect: 'error',
-      headers: webhookHeaders,
-      body: JSON.stringify({
-        source: 'digital-universe-pro-free-amazon-audit',
-        receivedAt: new Date(now()).toISOString(),
-        name: validation.data.name,
-        contactMethod: validation.data.contactMethod,
-        contact: validation.data.contact,
-        ...(validation.data.monthlyRevenue
-          ? {
-            monthlyAmazonRevenueRange: validation.data.monthlyRevenue,
-            monthlyAmazonRevenueCurrency: validation.data.revenueCurrency,
-            monthlyAmazonRevenueRangeLabel: getMonthlyRevenueOptions(validation.data.revenueCurrency).find(option => option.value === validation.data.monthlyRevenue).label,
-          }
-          : {}),
-        ...(leadExperiment ? { croExperiment: leadExperiment } : {}),
-      }),
-      signal: controller.signal,
-    });
-  } catch {
-    return response(502, {
-      delivered: false,
-      message: 'We could not confirm delivery. Please try again or use WhatsApp.',
-    }, corsHeaders);
+    outcomes = await Promise.allSettled(
+      channels.map((channel) => channel.send(lead, { fetchImpl, signal: controller.signal })),
+    );
   } finally {
     clearTimeout(timeout);
   }
 
-  if (!webhookResponse.ok) {
+  outcomes.forEach((outcome, index) => {
+    if (outcome.status === 'fulfilled' && outcome.value.delivered) return;
+    // Channel name and HTTP status only; lead values are never logged.
+    const detail = outcome.status === 'fulfilled' ? `HTTP ${outcome.value.status}` : 'no response';
+    console.warn(`Lead delivery via ${channels[index].name} failed (${detail}).`);
+  });
+
+  if (!outcomes.some((outcome) => outcome.status === 'fulfilled' && outcome.value.delivered)) {
     return response(502, {
       delivered: false,
       message: 'We could not confirm delivery. Please try again or use WhatsApp.',

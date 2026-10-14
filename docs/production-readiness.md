@@ -55,8 +55,9 @@ deployment protection, real browser-device combinations, or actual CRM delivery.
 
 ## Owner inputs and launch checks still outstanding
 
-1. **Lead destination:** set an approved HTTPS webhook/CRM destination in Vercel
-   and confirm receipt of an authorized test enquiry. Without it, the audit
+1. **Lead destination:** configure the Resend email alert
+   (or an approved HTTPS webhook/CRM) in Vercel and confirm receipt of an
+   authorized test enquiry. Without it, the audit
    form correctly returns a delivery error; WhatsApp/email enquiry links remain
    available. AI enquiries use their dedicated WhatsApp/email path.
 2. **GoDaddy API connection:** build with the stable Vercel API URL and verify

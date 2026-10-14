@@ -142,7 +142,7 @@ Business metrics and non-metric credentials are inventoried in:
 - `src/features/lead-capture/AuditForm.jsx` is the one canonical free-audit form, reused on the home and contact pages. `useAuditForm.js` owns its state, validation, focus, and submission flow.
 - The four requested lead fields are validated in the browser and again by `api/leads.js` through `server/leads/leadSubmission.js`, using the common `shared/leadSchema.js` contract.
 - The browser submits JSON with `POST`; lead values are never placed in a URL.
-- Delivery is intentionally unconfigured until `LEAD_WEBHOOK_URL` points to an approved HTTPS CRM/webhook destination.
+- Delivery is intentionally unconfigured until at least one server channel is set: a Resend email alert or an approved HTTPS CRM/webhook (`LEAD_WEBHOOK_URL`).
 - The UI shows success only after the destination acknowledges delivery. Missing configuration, network errors, and upstream failures remain visible failures.
 - See `docs/lead-funnel.md` and `.env.example` for the integration contract and manual testing flow.
 

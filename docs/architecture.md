@@ -22,7 +22,7 @@ This repository contains one React/Vite website and a small lead-delivery API. I
 | `src/assets/` | Images imported by the application and processed by Vite. |
 | `src/styles/`, `src/types/` | Global CSS, shared layout classes, and asset declarations. |
 | `shared/` | Environment-independent contracts consumed by browser and server. |
-| `server/` | Server-only lead validation policy, rate limits, and webhook delivery. |
+| `server/` | Server-only lead validation policy, rate limits, and email/webhook delivery. |
 | `api/` | Deployment adapter exposing the server handler. |
 | `build/` | Vite SEO plugin: static search shell, head tags, brand image, sitemap, and robots output. |
 | `public/` | Files copied unchanged, including Apache rules and the legacy thank-you URL. |
@@ -63,7 +63,7 @@ To add a route, update route resolution and SEO metadata, add its HTML shell and
 
 `AuditForm.jsx` renders the single form implementation on the home and contact pages. It collects name, contact, revenue currency and a matching revenue range; the Amazon URL field is retired. `useAuditForm.js` owns field state, validation, submission, error focus, and funnel events. `submitLead.js` owns browser HTTP delivery. `shared/leadSchema.js` is the common validation contract. The API adapter delegates to `server/leads/leadSubmission.js`.
 
-The browser never receives webhook credentials. Static site hosting still requires a separately deployed API, configured through `VITE_LEAD_API_URL`. Success remains conditional on acknowledged delivery.
+The browser never receives delivery credentials. Static site hosting still requires a separately deployed API, configured through `VITE_LEAD_API_URL`. Success remains conditional on acknowledged delivery.
 
 ## Assets and generated output
 
