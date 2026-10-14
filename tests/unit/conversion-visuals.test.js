@@ -35,6 +35,8 @@ test('sales snapshots render exact user-supplied source images from typed config
   assert.match(content, /readonly SalesSnapshot\[\]/);
   assert.doesNotMatch(content, /sourceDisclosure|dateRangeLabel/);
   assert.equal((content.match(/crop: \{ x:/g) || []).length, 6);
+  assert.equal((content.match(/published: true/g) || []).length, 6, 'all six supplied snapshots are published');
+  assert.doesNotMatch(content, /previewImage: null/);
 });
 
 test('sales snapshot source images retain their original dimensions', async () => {

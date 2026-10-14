@@ -3,6 +3,7 @@ import preview1 from '../assets/sales_snapshots/us-july.webp';
 import preview2 from '../assets/sales_snapshots/us-june.webp';
 import preview3 from '../assets/sales_snapshots/india-short-july.webp';
 import preview4 from '../assets/sales_snapshots/india-july.webp';
+import preview5 from '../assets/sales_snapshots/india-december-january.webp';
 import firstSnapshotSource from '../assets/sales_snapshots/amazon-sales-snapshots-india-us-row.png';
 import secondSnapshotSource from '../assets/sales_snapshots/amazon-sales-snapshots-four-marketplace-periods.png';
 
@@ -71,10 +72,12 @@ export const SALES_SNAPSHOTS: readonly SalesSnapshot[] = [
   },
   {
     id: 'amazon-india-december-january-2025',
-    previewImage: null,
-    caption: 'Source period requires clarification',
+    previewImage: preview5,
+    // The screenshot's own range label (12/1/2025 – 1/31/2025) has an inconsistent year,
+    // so the caption names only the months it covers.
+    caption: 'December–January',
     marketplace: 'Amazon India',
-    published: false,
+    published: true,
     featured: false,
     sourceImage: secondSnapshotSource,
     sourceWidth: 2940,

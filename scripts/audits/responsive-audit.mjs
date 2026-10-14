@@ -87,7 +87,7 @@ try {
     await evaluate(client, `document.querySelector('#amazon-credentials details').open=true;document.querySelector('#client-brands details').open=true;document.querySelector('#sales-snapshots details').open=true`)
     const expanded = await evaluate(client, stateExpression)
     assert.deepEqual(expanded.overflow, [], `${width}: expanded sections overflow`)
-    assert.equal(await evaluate(client, `document.querySelectorAll('[data-sales-snapshot-id]').length`), 5)
+    assert.equal(await evaluate(client, `document.querySelectorAll('[data-sales-snapshot-id]').length`), 6)
     const galleryButton = `document.querySelector('[data-sales-snapshot-id] button')`
     await evaluate(client, `${galleryButton}.focus(); ${galleryButton}.click()`)
     await waitForCondition(client, `Boolean(document.querySelector('dialog[open]'))`, 'screenshot dialog')
