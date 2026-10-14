@@ -41,16 +41,24 @@ export const getMonthlyRevenueOptions = (currencyCode) =>
 export const getAdSpendOptions = (currencyCode) =>
   formatRangeOptions(currencyCode, adSpendRanges, { value: 'not-running', label: 'Not running ads yet' });
 
+// Fixed suffixes rather than Intl's compact notation, whose casing varies between ICU versions.
+const compactMoney = (currency, amount) => {
+  const units = currency.code === 'INR'
+    ? [[10_000_000, 'Cr'], [100_000, 'L'], [1_000, 'K']]
+    : [[1_000_000, 'M'], [1_000, 'K']];
+  const [divisor, suffix] = units.find(([size]) => amount >= size) ?? [1, ''];
+  return `${currency.symbol}${amount / divisor}${suffix}`;
+};
+
 // Compact band for subject lines and badges, e.g. "₹1L–₹5L/mo".
 export const getRevenueShortLabel = (currencyCode, value) => {
   if (value === 'not-selling-yet') return 'Not selling yet';
   const currency = REVENUE_CURRENCIES.find(item => item.code === currencyCode);
   const range = currency && revenueRanges[currency.code].find(([rangeValue]) => rangeValue === value);
   if (!range) return '';
-  const money = new Intl.NumberFormat(currency.locale, { style: 'currency', currency: currency.code, notation: 'compact', maximumFractionDigits: 0 });
   const [, min, max] = range;
-  if (min === null) return `Under ${money.format(max)}/mo`;
-  return max === null ? `${money.format(min)}+/mo` : `${money.format(min)}–${money.format(max)}/mo`;
+  if (min === null) return `Under ${compactMoney(currency, max)}/mo`;
+  return max === null ? `${compactMoney(currency, min)}+/mo` : `${compactMoney(currency, min)}–${compactMoney(currency, max)}/mo`;
 };
 
 export const MARKETPLACES = Object.freeze([
