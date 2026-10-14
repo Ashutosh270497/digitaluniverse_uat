@@ -44,7 +44,7 @@ const Footer = () => (
             <p className="font-black text-white">{SITE_CONFIG.brandName}</p>
           </div>
           <p className="mt-5 max-w-sm leading-relaxed text-gray-400">
-            Amazon growth and AI solutions for businesses ready to build, automate and scale.
+            Marketplace growth on Amazon, Flipkart, Meesho and TikTok Shop, plus AI solutions for businesses ready to build, automate and scale.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             {SITE_CONFIG.socialLinks.map((social) => {

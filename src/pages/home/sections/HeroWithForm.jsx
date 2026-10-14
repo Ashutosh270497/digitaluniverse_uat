@@ -3,6 +3,7 @@ import { ArrowRight, Check } from 'lucide-react';
 import AuditForm from '../../../features/lead-capture/AuditForm.jsx';
 import HeroHeadline from './HeroHeadline.jsx';
 import { AmazonPartnerBadges } from '../../../components/ui/AmazonPartnerBadge.jsx';
+import { MarketplaceLogoRow } from '../../../components/ui/OtherMarketplaces.jsx';
 import { AI_SERVICES_ROUTE } from '../../../config/routes.js';
 import { CRO_DEFAULTS, CRO_EXPERIMENT_IDS, getCroValue } from '../../../experiments/index.js';
 import { trackSecondaryCtaClick } from '../../../analytics/index.js';
@@ -73,6 +74,7 @@ const HeroWithForm = () => {
           <div className="mt-8 border-t border-white/15 pt-6">
             <AmazonPartnerBadges priority />
             <p className="mt-4 text-sm text-gray-300">Serving Amazon sellers across the USA, UK, India &amp; global marketplaces.</p>
+            <MarketplaceLogoRow />
             <a href={AI_SERVICES_ROUTE} className="mt-3 inline-flex min-h-11 items-center gap-2 rounded text-sm font-semibold text-primary-300 underline underline-offset-4">Explore AI solutions for your business<ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
           </div>
         </div>

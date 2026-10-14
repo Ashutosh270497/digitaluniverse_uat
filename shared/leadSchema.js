@@ -61,13 +61,22 @@ export const getRevenueShortLabel = (currencyCode, value) => {
   return max === null ? `${compactMoney(currency, min)}+/mo` : `${compactMoney(currency, min)}–${compactMoney(currency, max)}/mo`;
 };
 
+export const MARKETPLACE_GROUPS = Object.freeze([
+  Object.freeze({ id: 'amazon', label: 'Amazon' }),
+  Object.freeze({ id: 'other', label: 'Other marketplaces' }),
+]);
+
+// `summaryLabel` names the platform in emails and the confirmation summary.
 export const MARKETPLACES = Object.freeze([
-  Object.freeze({ value: 'in', label: 'India', flag: '🇮🇳' }),
-  Object.freeze({ value: 'us', label: 'United States', flag: '🇺🇸' }),
-  Object.freeze({ value: 'uk', label: 'United Kingdom', flag: '🇬🇧' }),
-  Object.freeze({ value: 'ae', label: 'UAE', flag: '🇦🇪' }),
-  Object.freeze({ value: 'eu', label: 'Europe', flag: '🇪🇺' }),
-  Object.freeze({ value: 'other', label: 'Other', flag: '🌍' }),
+  Object.freeze({ value: 'in', label: 'India', flag: '🇮🇳', group: 'amazon', summaryLabel: 'Amazon India' }),
+  Object.freeze({ value: 'us', label: 'United States', flag: '🇺🇸', group: 'amazon', summaryLabel: 'Amazon US' }),
+  Object.freeze({ value: 'uk', label: 'United Kingdom', flag: '🇬🇧', group: 'amazon', summaryLabel: 'Amazon UK' }),
+  Object.freeze({ value: 'ae', label: 'UAE', flag: '🇦🇪', group: 'amazon', summaryLabel: 'Amazon UAE' }),
+  Object.freeze({ value: 'eu', label: 'Europe', flag: '🇪🇺', group: 'amazon', summaryLabel: 'Amazon Europe' }),
+  Object.freeze({ value: 'flipkart', label: 'Flipkart', group: 'other', summaryLabel: 'Flipkart' }),
+  Object.freeze({ value: 'meesho', label: 'Meesho', group: 'other', summaryLabel: 'Meesho' }),
+  Object.freeze({ value: 'tiktok-shop', label: 'TikTok Shop', group: 'other', summaryLabel: 'TikTok Shop' }),
+  Object.freeze({ value: 'other', label: 'Other', flag: '🌍', group: 'other', summaryLabel: 'Other marketplace' }),
 ]);
 
 export const SELLER_TYPES = Object.freeze([
@@ -223,7 +232,10 @@ const labelFor = (list, value) => list.find(item => item.value === value)?.label
 // Human-readable answers for emails and the confirmation summary.
 export const describeLeadDetails = (data) => ({
   storeUrl: data.storeUrl,
-  marketplaces: data.marketplaces.map(value => labelFor(MARKETPLACES, value)).filter(Boolean).join(', '),
+  marketplaces: data.marketplaces
+    .map(value => MARKETPLACES.find(item => item.value === value)?.summaryLabel ?? '')
+    .filter(Boolean)
+    .join(', '),
   sellerType: labelFor(SELLER_TYPES, data.sellerType),
   adSpend: data.adSpend ? labelFor(getAdSpendOptions(data.revenueCurrency), data.adSpend) : '',
   challenges: data.challenges.map(value => labelFor(CHALLENGES, value)).filter(Boolean).join(', '),

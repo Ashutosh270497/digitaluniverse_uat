@@ -427,7 +427,7 @@ test('Step 2 details are delivered as a follow-up referencing the lead ID', asyn
   assert.equal('leadId' in result.body, false);
   const email = calls.find(({ url }) => isEmailCall(url)).body;
   assert.equal(email.subject, 'Audit details added: A Seller (DU-20270115-AB2C)');
-  assert.match(email.text, /Marketplaces: India, United States/);
+  assert.match(email.text, /Marketplaces: Amazon India, Amazon US/);
   assert.match(email.text, /Ad spend: ₹50,000–₹2,00,000 \/ month/);
   assert.match(email.text, /Challenges: High ACoS \/ PPC waste, Low rankings & visibility/);
   const webhook = calls.find(({ url }) => !isEmailCall(url)).body;
