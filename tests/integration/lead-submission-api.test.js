@@ -83,7 +83,8 @@ test('Vercel same-origin requests and GoDaddy cross-origin preflight are support
   assert.equal(options.headers['Cache-Control'], 'no-store');
 });
 
-test('webhook timeout returns a delivery failure without automatic retry', async () => {
+test('webhook timeout returns a delivery failure without automatic retry', async (t) => {
+  t.mock.method(console, 'warn', () => {});
   let calls = 0;
   const result = await handleLeadSubmission(createRequest(validBody), {
     env: { ...configuredEnv, LEAD_WEBHOOK_TIMEOUT_MS: '10' }, now: () => NOW,
@@ -131,7 +132,8 @@ test('server rejects an invalid currency', async () => {
   assert.equal(result.body.errors.revenueCurrency, 'Choose USD, INR or GBP for your revenue range.');
 });
 
-test('upstream server error is returned as a delivery failure', async () => {
+test('upstream server error is returned as a delivery failure', async (t) => {
+  t.mock.method(console, 'warn', () => {});
   const result = await handleLeadSubmission(createRequest(validBody), {
     env: configuredEnv,
     now: () => NOW,
