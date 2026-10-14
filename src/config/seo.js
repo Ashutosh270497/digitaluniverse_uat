@@ -118,7 +118,7 @@ export const SEO_ROUTES = Object.freeze([
     title: 'Amazon A+ Content & Storefront Services | Digital Universe',
     description:
       'A+ Content, Brand Story and Amazon Storefront planning for eligible brands that need clearer product education and consistent marketplace content.',
-    h1: 'Amazon A+ Content, Brand Story and Storefront planning',
+    h1: 'Amazon A+ Content, Brand Story & Storefronts Built to Convert',
     breadcrumbLabel: 'Amazon A+ Content',
     kind: 'service',
   }),

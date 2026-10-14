@@ -21,15 +21,21 @@ export interface ServiceDefinition {
 }
 
 export interface ServicePageContent {
+  /** Replaces the shared service summary under the page H1 only. */
+  heroSummary?: string;
   audienceLabel?: string;
+  /** Shows the audience as a list instead of the single whoItIsFor sentence. */
+  audienceList?: readonly string[];
   spnHeading?: string;
   problemsHeading?: string;
   outcomeHeading?: string;
   outcomeBenefits?: readonly string[];
+  /** Overrides the proposal disclaimer under the outcome; null hides it. */
+  outcomeNote?: string | null;
   deliverablesHeading?: string;
-  deliverableGroups?: readonly { title: string; items: readonly string[] }[];
+  deliverableGroups?: readonly { title: string; description?: string; items?: readonly string[] }[];
   clientInvolvementHeading?: string;
-  strategy?: { title: string; description: string; ctaLabel: string };
+  strategy?: { title: string; description: string; ctaLabel?: string };
   processSteps?: readonly Pick<ProcessStep, 'number' | 'title' | 'description'>[];
 }
 
@@ -180,6 +186,45 @@ const ACCOUNT_PAGE_CONTENT: ServicePageContent = {
   },
 };
 
+const BRAND_CONTENT_PAGE_CONTENT: ServicePageContent = {
+  heroSummary:
+    'Build a stronger Amazon brand experience with strategic A+ Content, Brand Story and Storefront planning designed around your products, customers and marketplace goals.',
+  audienceLabel: 'Who This Service Is For',
+  audienceList: [
+    'Brands launching or rebuilding their Amazon presence',
+    'Brands with existing A+ Content that needs improvement',
+    'Sellers looking for a stronger Brand Story',
+    'Brands with multiple ASINs requiring consistent creative direction',
+    'Businesses preparing for Amazon marketplace expansion',
+  ],
+  outcomeHeading: 'What You Get',
+  outcomeNote: null,
+  deliverablesHeading: 'What We Can Build For Your Amazon Brand',
+  deliverableGroups: [
+    {
+      title: 'A+ Content',
+      description: 'Strategic modules designed around product benefits, features and customer objections.',
+    },
+    {
+      title: 'Brand Story',
+      description: 'Consistent brand messaging and visual storytelling across your Amazon presence.',
+    },
+    {
+      title: 'Storefront',
+      description: 'Structured Storefront planning to organise products and strengthen brand discovery.',
+    },
+    {
+      title: 'Creative Direction',
+      description: 'Content hierarchy, image requirements and creative recommendations for your brand.',
+    },
+  ],
+  strategy: {
+    title: 'A Scope Built Around Your Brand',
+    description:
+      'Every Amazon brand has different products, customers and creative requirements. We review your existing presence and define the right scope, deliverables and priorities for your account before execution begins.',
+  },
+};
+
 export const SERVICES: readonly ServiceDefinition[] = [
   {
     id: 'amazon-ppc-profitability',
@@ -294,9 +339,10 @@ export const SERVICES: readonly ServiceDefinition[] = [
     ],
     notIncluded: null,
     primaryOutcome:
-      'A clearer and more consistent Amazon brand experience for eligible products.',
+      'A structured Amazon brand experience that makes your products easier to understand, your brand easier to recognise, and your Storefront easier to navigate.',
     relevantCaseStudySlug: null,
     spnServiceKey: 'enhancedBrandContent',
+    pageContent: BRAND_CONTENT_PAGE_CONTENT,
   },
   {
     id: 'product-launch-growth',
