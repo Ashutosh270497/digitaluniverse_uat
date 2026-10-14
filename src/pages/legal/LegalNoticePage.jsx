@@ -18,7 +18,7 @@ const LegalNoticePage = ({ route }) => {
       <SkipLink />
       <header className="border-b border-white/10 bg-amazon-dark/95">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-5 sm:px-6 lg:px-10">
-          <a href="/" className="inline-flex items-center gap-3" aria-label="Digital Universe Pro home">
+          <a href="/" className="inline-flex items-center gap-3" aria-label="Digital Universe home">
             <img src={logo} alt="" width="300" height="300" className="h-12 w-12 object-contain" aria-hidden="true" />
             <span className="hidden text-lg font-bold text-white sm:inline sm:text-xl">{SITE_CONFIG.brandName}</span>
           </a>
@@ -50,7 +50,7 @@ const LegalNoticePage = ({ route }) => {
           ) : (
             <>
               <p className="mt-6 text-lg leading-relaxed text-gray-300">
-                This route is active, but Digital Universe Pro has not published this policy because the verified legal inputs required to prepare it have not been supplied.
+                This route is active, but Digital Universe has not published this policy because the verified legal inputs required to prepare it have not been supplied.
               </p>
               <p className="mt-4 text-lg leading-relaxed text-gray-300">
                 No registered address, jurisdiction, retention period, processor list, contractual term, or other legal fact has been inferred.

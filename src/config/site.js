@@ -1,3 +1,4 @@
+import { BRAND } from '../../shared/brand.js';
 import { LEGAL_PATHS } from './routes.js';
 
 export const SPN_SERVICES = [
@@ -32,38 +33,30 @@ const spnRegions = [
 }));
 
 export const SITE_CONFIG = {
-  brandName: 'Digital Universe Pro',
-  canonicalOrigin: 'https://digitaluniversepro.co',
-  contact: {
-    email: 'support@digitaluniversepro.co',
-    phoneDisplay: '+91 63871 04378',
-    phoneE164: '+916387104378',
-    secondaryPhoneDisplay: '+91 92080 24236',
-    secondaryPhoneE164: '+919208024236',
-    whatsappNumber: '916387104378',
-    address: 'India',
-  },
+  brandName: BRAND.name,
+  canonicalOrigin: BRAND.canonicalOrigin,
+  contact: { ...BRAND.contact },
   whatsappDefaultMessage: 'Hello, I am interested in your Amazon agency services.',
   socialLinks: [
     {
       name: 'Facebook',
       url: 'https://www.facebook.com/people/Digital-Universe/100095308834069/',
-      ariaLabel: 'Visit Digital Universe Pro on Facebook',
+      ariaLabel: 'Visit Digital Universe on Facebook',
     },
     {
       name: 'LinkedIn',
       url: 'https://www.linkedin.com/company/digital-universe-pro/',
-      ariaLabel: 'Visit Digital Universe Pro on LinkedIn',
+      ariaLabel: 'Visit Digital Universe on LinkedIn',
     },
     {
       name: 'Instagram',
       url: 'https://www.instagram.com/digitaluniversepro.co/',
-      ariaLabel: 'Visit Digital Universe Pro on Instagram',
+      ariaLabel: 'Visit Digital Universe on Instagram',
     },
     {
       name: 'YouTube',
       url: 'https://www.youtube.com/@Prodigitaluniverse',
-      ariaLabel: 'Visit Digital Universe Pro on YouTube',
+      ariaLabel: 'Visit Digital Universe on YouTube',
     },
   ],
   amazonAdsPartnerUrl:

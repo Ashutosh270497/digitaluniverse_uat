@@ -19,7 +19,7 @@ const SpnPage = () => (
         <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Amazon SPN' }]} className="text-gray-300" />
         <p className="mt-10 text-xs font-bold uppercase tracking-[0.18em] text-primary-300">Amazon Service Provider Network</p>
         <h1 className="mt-4 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">Explore our Amazon SPN services.</h1>
-        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-gray-300">Choose the support your business needs. Each service below opens Digital Universe Pro’s Amazon SPN India listing.</p>
+        <p className="mt-5 max-w-2xl text-lg leading-relaxed text-gray-300">Choose the support your business needs. Each service below opens Digital Universe’s Amazon SPN India listing.</p>
         <AmazonPartnerBadge kind="spn" compact href={SITE_CONFIG.spnLinks.accountManagement} label="India · Account Management" className="mt-7" />
       </div>
     </section>

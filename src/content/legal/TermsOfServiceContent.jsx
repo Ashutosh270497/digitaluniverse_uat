@@ -32,7 +32,7 @@ const TermsOfServiceContent = () => (
             Draft — not yet effective
           </h2>
           <p className="mt-3 text-base leading-relaxed text-amber-50/90">
-            This page maps the Terms of Service content supplied for Digital Universe Pro, but it
+            This page maps the Terms of Service content supplied for Digital Universe, but it
             is not yet an effective agreement. The missing business and legal details below must
             be confirmed and the final wording reviewed before publication.
           </p>
@@ -72,7 +72,7 @@ const TermsOfServiceContent = () => (
       </p>
       <p>
         The contracting legal entity, entity type, and registered or principal office for Digital
-        Universe Pro must be confirmed before these Terms take effect. No legal operator or address
+        Universe must be confirmed before these Terms take effect. No legal operator or address
         has been inferred for this draft.
       </p>
       <p>
@@ -89,7 +89,7 @@ const TermsOfServiceContent = () => (
 
     <TermsSection number="1" title="Nature of the Website">
       <p>
-        The Website provides information about Digital Universe Pro and its Amazon marketplace
+        The Website provides information about Digital Universe and its Amazon marketplace
         consulting and management services.
       </p>
       <p>Depending on the agreed scope, our services may include:</p>
@@ -245,7 +245,7 @@ const TermsOfServiceContent = () => (
     </TermsSection>
 
     <TermsSection number="7" title="Amazon and Other Third-Party Platforms">
-      <p>Digital Universe Pro is an independent service provider.</p>
+      <p>Digital Universe is an independent service provider.</p>
       <p>Amazon, Seller Central, Amazon Ads, and other Amazon names, logos, and trademarks belong to their respective owners.</p>
       <p>
         Any Amazon Service Provider Network, Amazon Ads Partner, or similar status displayed on our
@@ -408,7 +408,7 @@ const TermsOfServiceContent = () => (
     <TermsSection number="13" title="Deliverables and Intellectual Property">
       <p>
         The Website, including its text, design, graphics, software, branding, and original content,
-        is owned by or licensed to Digital Universe Pro and is protected by applicable
+        is owned by or licensed to Digital Universe and is protected by applicable
         intellectual-property laws.
       </p>
       <p>
@@ -497,7 +497,7 @@ const TermsOfServiceContent = () => (
         <li>upload malware or malicious code;</li>
         <li>interfere with Website security or availability;</li>
         <li>scrape, harvest, or collect information using unauthorised automated methods;</li>
-        <li>impersonate Digital Universe Pro or another person;</li>
+        <li>impersonate Digital Universe or another person;</li>
         <li>submit false or misleading enquiries;</li>
         <li>infringe our or another party’s intellectual-property rights; or</li>
         <li>use Website content to create a misleadingly similar or competing website.</li>
@@ -599,7 +599,7 @@ const TermsOfServiceContent = () => (
 
     <TermsSection number="22" title="Indemnification">
       <p>
-        To the extent permitted by law, you agree to indemnify and hold harmless Digital Universe Pro,
+        To the extent permitted by law, you agree to indemnify and hold harmless Digital Universe,
         its legal operator, personnel, and contractors from third-party claims, damages, penalties, and
         reasonable costs arising from:
       </p>

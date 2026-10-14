@@ -25,8 +25,8 @@ const CaseStudies = () => (
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-gray-700">
           {featuredCaseStudies.length > 0
-            ? 'Selected results from accounts supported by Digital Universe Pro. Outcomes vary by product, category, competition, pricing and account conditions.'
-            : 'Digital Universe Pro publishes results only when the source, time period, client permission and agency contribution are documented.'}{' '}
+            ? 'Selected results from accounts supported by Digital Universe. Outcomes vary by product, category, competition, pricing and account conditions.'
+            : 'Digital Universe publishes results only when the source, time period, client permission and agency contribution are documented.'}{' '}
           A raw revenue screenshot is supporting context, not standalone proof of agency impact.
         </p>
       </div>

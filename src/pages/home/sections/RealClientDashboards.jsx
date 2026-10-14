@@ -26,7 +26,7 @@ const RealClientDashboards = () => {
     <section id="sales-snapshots" aria-labelledby="sales-snapshots-heading" className="section-space bg-amazon-cream">
       <span id="case-studies" className="scroll-mt-24" />
       <div className="section-shell">
-        <div className="home-section-intro"><div><p className="eyebrow">Behind the numbers</p><h2 id="sales-snapshots-heading" className="section-title">Real accounts.<br />A closer look at the results.</h2></div><p className="home-section-description">Explore sales snapshots supplied by Digital Universe Pro, across Indian and international Amazon marketplaces.</p></div>
+        <div className="home-section-intro"><div><p className="eyebrow">Behind the numbers</p><h2 id="sales-snapshots-heading" className="section-title">Real accounts.<br />A closer look at the results.</h2></div><p className="home-section-description">Explore sales snapshots supplied by Digital Universe, across Indian and international Amazon marketplaces.</p></div>
         <div className="mt-9 grid gap-6 md:grid-cols-2">{PUBLISHED_SALES_SNAPSHOTS.filter(snapshot => snapshot.featured).map(renderSnapshot)}</div>
         <details className="mt-6"><summary className="mx-auto flex min-h-12 w-fit cursor-pointer items-center rounded-lg border border-gray-300 bg-white px-5 text-sm font-semibold text-amazon-dark">View more sales snapshots</summary><div className="mt-6 grid gap-6 md:grid-cols-2">{PUBLISHED_SALES_SNAPSHOTS.filter(snapshot => !snapshot.featured).map(renderSnapshot)}</div></details>
         <p className="mt-6 max-w-3xl text-sm leading-relaxed text-gray-600">These are account-level sales records for the periods shown. Sales totals alone do not measure the agency’s contribution or guarantee future results.</p>

@@ -1,5 +1,14 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { getMonthlyRevenueOptions, validateLeadPayload } from '../../shared/leadSchema.js';
+import { BRAND } from '../../shared/brand.js';
+import {
+  CONTACT_METHODS,
+  describeLeadDetails,
+  getAdSpendOptions,
+  getMonthlyRevenueOptions,
+  validateLeadDetailsPayload,
+  validateLeadPayload,
+} from '../../shared/leadSchema.js';
+import { renderDetailsAlert, renderLeadAlert, renderVisitorConfirmation } from './leadEmails.js';
 
 const MAX_BODY_BYTES = 10_000;
 const MIN_FORM_COMPLETION_MS = 500;
@@ -10,10 +19,10 @@ const ephemeralRateLimitSalt = randomBytes(32).toString('hex');
 const rateLimitStore = new Map();
 const REVENUE_FIELD_EXPERIMENT_ID = 'revenue_range_field';
 const TREATMENT_VARIANT = 'treatment';
-const LEAD_SOURCE = 'digital-universe-pro-free-amazon-audit';
+const LEAD_SOURCE = 'digital-universe-free-amazon-audit';
 const RESEND_EMAILS_URL = 'https://api.resend.com/emails';
 // Resend's shared test sender only delivers to the Resend account's own email.
-const DEFAULT_LEAD_EMAIL_FROM = 'Digital Universe Pro Leads <onboarding@resend.dev>';
+const DEFAULT_LEAD_EMAIL_FROM = 'Digital Universe Leads <onboarding@resend.dev>';
 
 const readHeader = (headers, name) => {
   if (typeof headers?.get === 'function') return headers.get(name) || '';
@@ -120,29 +129,49 @@ const getLeadEmailRecipients = (env) => String(env.LEAD_EMAIL_TO || '')
   .map((email) => email.trim())
   .filter(Boolean);
 
-const singleLine = (value) => value.replace(/\s+/g, ' ');
+// Pasted dashboard values often carry stray whitespace, which is invalid in a header.
+const getResendApiKey = (env) => String(env.RESEND_API_KEY || '').trim();
 
-const formatReceivedAt = (receivedAt) => `${new Intl.DateTimeFormat('en-IN', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  timeZone: 'Asia/Kolkata',
-}).format(new Date(receivedAt))} IST`;
+// The visitor confirmation needs a sender on a domain verified in Resend.
+const getConfirmationSender = (env) => String(env.LEAD_CONFIRMATION_FROM || '').trim();
 
-const formatLeadLines = (lead) => {
-  const viaWhatsApp = lead.contactMethod === 'whatsapp';
-  return [
-    `Name: ${singleLine(lead.name)}`,
-    `${viaWhatsApp ? 'WhatsApp' : 'Email'}: ${singleLine(lead.contact)}`,
-    ...(lead.monthlyAmazonRevenueRangeLabel
-      ? [`Monthly Amazon revenue: ${lead.monthlyAmazonRevenueRangeLabel}`]
-      : []),
-    `Received: ${formatReceivedAt(lead.receivedAt)}`,
-    ...(viaWhatsApp ? [`Chat: https://wa.me/${lead.contact.replace(/\D/g, '')}`] : []),
-  ];
+const LEAD_ID_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+// e.g. DU-20261014-7K3P: the IST date plus a random suffix, so Step 2 can reference the lead.
+export const createLeadId = (timestamp, bytes = randomBytes(4)) => {
+  const date = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date(timestamp)).replaceAll('-', '');
+  const suffix = [...bytes].map((byte) => LEAD_ID_ALPHABET[byte % LEAD_ID_ALPHABET.length]).join('');
+  return `DU-${date}-${suffix}`;
 };
 
-// Each configured channel receives the lead independently; any one confirmed
-// delivery means the lead reached the business.
+const FORM_LOCATIONS = new Set(['hero', 'contact_page']);
+const getFormLocation = (value) => (FORM_LOCATIONS.has(value) ? value : 'unspecified');
+
+const sendResendEmail = async ({ env, fetchImpl, signal, from, to, replyTo, email }) => {
+  const result = await fetchImpl(RESEND_EMAILS_URL, {
+    method: 'POST',
+    redirect: 'error',
+    headers: {
+      Authorization: `Bearer ${getResendApiKey(env)}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to,
+      subject: email.subject,
+      html: email.html,
+      text: email.text,
+      ...(replyTo ? { reply_to: replyTo } : {}),
+    }),
+    signal,
+  });
+  return { delivered: result.ok, status: result.status };
+};
+
+// Each configured channel receives the message independently; any one confirmed
+// delivery means it reached the business.
 const getDeliveryChannels = (env) => {
   const channels = [];
 
@@ -150,7 +179,7 @@ const getDeliveryChannels = (env) => {
   if (webhookUrl) {
     channels.push({
       name: 'webhook',
-      send: async (lead, { fetchImpl, signal }) => {
+      send: async ({ payload }, { fetchImpl, signal }) => {
         const headers = { 'Content-Type': 'application/json' };
         if (env.LEAD_WEBHOOK_BEARER_TOKEN) {
           headers.Authorization = `Bearer ${env.LEAD_WEBHOOK_BEARER_TOKEN}`;
@@ -159,7 +188,7 @@ const getDeliveryChannels = (env) => {
           method: 'POST',
           redirect: 'error',
           headers,
-          body: JSON.stringify(lead),
+          body: JSON.stringify(payload),
           signal,
         });
         return { delivered: result.ok, status: result.status };
@@ -168,34 +197,69 @@ const getDeliveryChannels = (env) => {
   }
 
   const emailRecipients = getLeadEmailRecipients(env);
-  // Pasted dashboard values often carry stray whitespace, which is invalid in a header.
-  const resendApiKey = String(env.RESEND_API_KEY || '').trim();
-  if (resendApiKey && emailRecipients.length > 0) {
+  if (getResendApiKey(env) && emailRecipients.length > 0) {
     channels.push({
       name: 'email',
-      send: async (lead, { fetchImpl, signal }) => {
-        const result = await fetchImpl(RESEND_EMAILS_URL, {
-          method: 'POST',
-          redirect: 'error',
-          headers: {
-            Authorization: `Bearer ${resendApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            from: env.LEAD_EMAIL_FROM || DEFAULT_LEAD_EMAIL_FROM,
-            to: emailRecipients,
-            subject: `New Amazon audit lead: ${singleLine(lead.name)}`,
-            text: ['New free Amazon audit request', '', ...formatLeadLines(lead)].join('\n'),
-            ...(lead.contactMethod === 'email' ? { reply_to: lead.contact } : {}),
-          }),
-          signal,
-        });
-        return { delivered: result.ok, status: result.status };
-      },
+      send: ({ email, replyTo }, { fetchImpl, signal }) => sendResendEmail({
+        env,
+        fetchImpl,
+        signal,
+        from: env.LEAD_EMAIL_FROM || DEFAULT_LEAD_EMAIL_FROM,
+        to: emailRecipients,
+        replyTo,
+        email,
+      }),
     });
   }
 
   return channels;
+};
+
+const withTimeout = async (env, task) => {
+  const timeoutMs = asPositiveInteger(env.LEAD_WEBHOOK_TIMEOUT_MS, DEFAULT_WEBHOOK_TIMEOUT_MS);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await task(controller.signal);
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const deliverToChannels = async ({ channels, message, env, fetchImpl }) => {
+  const outcomes = await withTimeout(env, (signal) => Promise.allSettled(
+    channels.map((channel) => channel.send(message, { fetchImpl, signal })),
+  ));
+
+  outcomes.forEach((outcome, index) => {
+    if (outcome.status === 'fulfilled' && outcome.value.delivered) return;
+    // Channel name and HTTP status only; lead values are never logged.
+    const detail = outcome.status === 'fulfilled' ? `HTTP ${outcome.value.status}` : 'no response';
+    console.warn(`Lead delivery via ${channels[index].name} failed (${detail}).`);
+  });
+
+  return outcomes.some((outcome) => outcome.status === 'fulfilled' && outcome.value.delivered);
+};
+
+// Best effort: the lead is already delivered, so a failed confirmation is only logged.
+const sendVisitorConfirmation = async ({ env, fetchImpl, lead, logoUrl }) => {
+  const from = getConfirmationSender(env);
+  if (!from || !getResendApiKey(env) || lead.contactMethod !== CONTACT_METHODS.email) return;
+
+  try {
+    const result = await withTimeout(env, (signal) => sendResendEmail({
+      env,
+      fetchImpl,
+      signal,
+      from,
+      to: [lead.contact],
+      replyTo: String(env.LEAD_CONFIRMATION_REPLY_TO || BRAND.contact.email).trim(),
+      email: renderVisitorConfirmation(lead, { logoUrl }),
+    }));
+    if (!result.delivered) console.warn(`Visitor confirmation failed (HTTP ${result.status}).`);
+  } catch {
+    console.warn('Visitor confirmation failed (no response).');
+  }
 };
 
 const getLeadExperiment = (body, env) => {
@@ -289,18 +353,89 @@ export const handleLeadSubmission = async (
     return response(400, { delivered: false, message: 'Please review the form and try again.' }, corsHeaders);
   }
 
-  const leadExperiment = getLeadExperiment(body, env);
-  const omitRevenueRange = leadExperiment?.experimentId === REVENUE_FIELD_EXPERIMENT_ID
-    && leadExperiment.experimentVariant === TREATMENT_VARIANT;
-  const validation = validateLeadPayload(body, {
-    requireMonthlyRevenue: !omitRevenueRange,
-  });
-  if (!validation.isValid) {
-    return response(422, {
-      delivered: false,
-      message: 'Please correct the highlighted fields.',
-      errors: validation.errors,
-    }, corsHeaders);
+  const receivedAt = new Date(now()).toISOString();
+  const logoUrl = `${origin || BRAND.canonicalOrigin}${BRAND.logoPath}`;
+  let message;
+  let lead = null;
+  let successBody;
+
+  if (body.stage === 'details') {
+    const validation = validateLeadDetailsPayload(body);
+    if (!validation.isValid) {
+      return response(422, {
+        delivered: false,
+        message: validation.errors.details || 'Please correct the highlighted fields.',
+        errors: validation.errors,
+      }, corsHeaders);
+    }
+
+    const details = validation.data;
+    const described = describeLeadDetails(details);
+    message = {
+      payload: {
+        source: LEAD_SOURCE,
+        stage: 'details',
+        receivedAt,
+        leadId: details.leadId,
+        name: details.name,
+        contactMethod: details.contactMethod,
+        contact: details.contact,
+        storeUrl: details.storeUrl,
+        marketplaces: details.marketplaces,
+        sellerType: details.sellerType,
+        ...(details.adSpend
+          ? {
+            monthlyAdSpendRange: details.adSpend,
+            monthlyAdSpendCurrency: details.revenueCurrency,
+            monthlyAdSpendRangeLabel: getAdSpendOptions(details.revenueCurrency).find(option => option.value === details.adSpend).label,
+          }
+          : {}),
+        challenges: details.challenges,
+        notes: details.notes,
+      },
+      email: renderDetailsAlert(details, described, { logoUrl }),
+      replyTo: details.contactMethod === CONTACT_METHODS.email ? details.contact : undefined,
+    };
+    successBody = { delivered: true, message: 'Thanks — your audit details have been shared.' };
+  } else {
+    const leadExperiment = getLeadExperiment(body, env);
+    const omitRevenueRange = leadExperiment?.experimentId === REVENUE_FIELD_EXPERIMENT_ID
+      && leadExperiment.experimentVariant === TREATMENT_VARIANT;
+    const validation = validateLeadPayload(body, {
+      requireMonthlyRevenue: !omitRevenueRange,
+    });
+    if (!validation.isValid) {
+      return response(422, {
+        delivered: false,
+        message: 'Please correct the highlighted fields.',
+        errors: validation.errors,
+      }, corsHeaders);
+    }
+
+    lead = {
+      source: LEAD_SOURCE,
+      stage: 'lead',
+      receivedAt,
+      leadId: createLeadId(now()),
+      formLocation: getFormLocation(body.formLocation),
+      name: validation.data.name,
+      contactMethod: validation.data.contactMethod,
+      contact: validation.data.contact,
+      ...(validation.data.monthlyRevenue
+        ? {
+          monthlyAmazonRevenueRange: validation.data.monthlyRevenue,
+          monthlyAmazonRevenueCurrency: validation.data.revenueCurrency,
+          monthlyAmazonRevenueRangeLabel: getMonthlyRevenueOptions(validation.data.revenueCurrency).find(option => option.value === validation.data.monthlyRevenue).label,
+        }
+        : {}),
+      ...(leadExperiment ? { croExperiment: leadExperiment } : {}),
+    };
+    message = {
+      payload: lead,
+      email: renderLeadAlert(lead, { logoUrl }),
+      replyTo: lead.contactMethod === CONTACT_METHODS.email ? lead.contact : undefined,
+    };
+    successBody = { delivered: true, message: 'Your Amazon audit request has been received.', leadId: lead.leadId };
   }
 
   const channels = getDeliveryChannels(env);
@@ -318,50 +453,15 @@ export const handleLeadSubmission = async (
     }, corsHeaders);
   }
 
-  const lead = {
-    source: LEAD_SOURCE,
-    receivedAt: new Date(now()).toISOString(),
-    name: validation.data.name,
-    contactMethod: validation.data.contactMethod,
-    contact: validation.data.contact,
-    ...(validation.data.monthlyRevenue
-      ? {
-        monthlyAmazonRevenueRange: validation.data.monthlyRevenue,
-        monthlyAmazonRevenueCurrency: validation.data.revenueCurrency,
-        monthlyAmazonRevenueRangeLabel: getMonthlyRevenueOptions(validation.data.revenueCurrency).find(option => option.value === validation.data.monthlyRevenue).label,
-      }
-      : {}),
-    ...(leadExperiment ? { croExperiment: leadExperiment } : {}),
-  };
-
-  const timeoutMs = asPositiveInteger(env.LEAD_WEBHOOK_TIMEOUT_MS, DEFAULT_WEBHOOK_TIMEOUT_MS);
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  let outcomes;
-  try {
-    outcomes = await Promise.allSettled(
-      channels.map((channel) => channel.send(lead, { fetchImpl, signal: controller.signal })),
-    );
-  } finally {
-    clearTimeout(timeout);
-  }
-
-  outcomes.forEach((outcome, index) => {
-    if (outcome.status === 'fulfilled' && outcome.value.delivered) return;
-    // Channel name and HTTP status only; lead values are never logged.
-    const detail = outcome.status === 'fulfilled' ? `HTTP ${outcome.value.status}` : 'no response';
-    console.warn(`Lead delivery via ${channels[index].name} failed (${detail}).`);
-  });
-
-  if (!outcomes.some((outcome) => outcome.status === 'fulfilled' && outcome.value.delivered)) {
+  const delivered = await deliverToChannels({ channels, message, env, fetchImpl });
+  if (!delivered) {
     return response(502, {
       delivered: false,
       message: 'We could not confirm delivery. Please try again or use WhatsApp.',
     }, corsHeaders);
   }
 
-  return response(200, {
-    delivered: true,
-    message: 'Your Amazon audit request has been received.',
-  }, corsHeaders);
+  if (lead) await sendVisitorConfirmation({ env, fetchImpl, lead, logoUrl });
+
+  return response(200, successBody, corsHeaders);
 };

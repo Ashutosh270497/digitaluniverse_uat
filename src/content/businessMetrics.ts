@@ -1,6 +1,6 @@
 export type MetricScope =
   | 'gautam-soni-career'
-  | 'digital-universe-pro-agency'
+  | 'digital-universe-agency'
   | 'selected-case-study';
 
 export type VerificationStatus = 'verified' | 'unverified';
@@ -27,7 +27,7 @@ export interface EvidenceClaim {
 
 export const METRIC_SCOPE_LABELS: Record<MetricScope, string> = {
   'gautam-soni-career': "Gautam Soni's career experience",
-  'digital-universe-pro-agency': 'Digital Universe Pro agency results',
+  'digital-universe-agency': 'Digital Universe agency results',
   'selected-case-study': 'Selected case-study result',
 };
 
@@ -53,27 +53,27 @@ const unverifiedMetric = (
 // is eligible for display only after evidenceSource is populated and its status is
 // explicitly changed to "verified".
 export const BUSINESS_METRICS: readonly BusinessMetric[] = [
-  unverifiedMetric('offer-first-month-discount', '30%', 'First-month discount', 'digital-universe-pro-agency', 'Offer period not specified', 'promotion'),
-  unverifiedMetric('hero-revenue-generated', '$50M+', 'Revenue generated', 'digital-universe-pro-agency', 'Time period not specified', 'hero'),
-  unverifiedMetric('hero-sellers-managed', '500+', 'Sellers managed', 'digital-universe-pro-agency', 'Time period not specified', 'hero'),
-  unverifiedMetric('hero-ad-spend-managed', '1.8B+', 'Ad spend managed', 'digital-universe-pro-agency', 'Time period and currency not specified', 'hero'),
-  unverifiedMetric('hero-marketplaces', '15+', 'Marketplaces', 'digital-universe-pro-agency', 'Current coverage; date not specified', 'market-coverage'),
-  unverifiedMetric('hero-countries', '50+', 'Countries', 'digital-universe-pro-agency', 'Current coverage; date not specified', 'market-coverage'),
-  unverifiedMetric('hero-support-availability', '24/7', 'Global support', 'digital-universe-pro-agency', 'Current service level; date not specified', 'market-coverage'),
-  unverifiedMetric('hero-audits-this-week', '127', 'Seller audits', 'digital-universe-pro-agency', 'Current week; date not specified', 'hero-form-proof'),
-  unverifiedMetric('hero-response-time', '24hr', 'Response time', 'digital-universe-pro-agency', 'Current service level; date not specified', 'hero-form-proof'),
-  unverifiedMetric('hero-rating', '5-Star', 'Client rating', 'digital-universe-pro-agency', 'Time period not specified', 'credential'),
-  unverifiedMetric('agency-active-sellers', '500+', 'Active sellers', 'digital-universe-pro-agency', 'Current total; date not specified', 'agency-summary'),
-  unverifiedMetric('agency-revenue-2024', '$108M+', 'Revenue generated', 'digital-universe-pro-agency', '2024', 'agency-summary'),
-  unverifiedMetric('agency-units-sold', '43,655+', 'Units sold', 'digital-universe-pro-agency', 'Time period not specified', 'agency-summary'),
-  unverifiedMetric('agency-orders-processed', '41,953+', 'Orders processed', 'digital-universe-pro-agency', 'Time period not specified', 'agency-summary'),
-  unverifiedMetric('agency-top-percent', 'Top 1%', 'Amazon partners', 'digital-universe-pro-agency', 'Time period not specified', 'credential'),
-  unverifiedMetric('agency-success-rate', '98%', 'Success rate', 'digital-universe-pro-agency', 'Time period not specified', 'credential'),
-  unverifiedMetric('agency-brands-worldwide', '500+', 'Brands worldwide', 'digital-universe-pro-agency', 'Time period not specified', 'brand-summary'),
-  unverifiedMetric('agency-industries', '15+', 'Industries', 'digital-universe-pro-agency', 'Time period not specified', 'brand-summary'),
-  unverifiedMetric('agency-categories', '25+', 'Categories', 'digital-universe-pro-agency', 'Time period not specified', 'brand-summary'),
-  unverifiedMetric('agency-products-managed', '100M+', 'Products managed', 'digital-universe-pro-agency', 'Time period not specified', 'brand-summary'),
-  unverifiedMetric('agency-uptime', '99.9%', 'Uptime', 'digital-universe-pro-agency', 'Time period not specified', 'brand-summary'),
+  unverifiedMetric('offer-first-month-discount', '30%', 'First-month discount', 'digital-universe-agency', 'Offer period not specified', 'promotion'),
+  unverifiedMetric('hero-revenue-generated', '$50M+', 'Revenue generated', 'digital-universe-agency', 'Time period not specified', 'hero'),
+  unverifiedMetric('hero-sellers-managed', '500+', 'Sellers managed', 'digital-universe-agency', 'Time period not specified', 'hero'),
+  unverifiedMetric('hero-ad-spend-managed', '1.8B+', 'Ad spend managed', 'digital-universe-agency', 'Time period and currency not specified', 'hero'),
+  unverifiedMetric('hero-marketplaces', '15+', 'Marketplaces', 'digital-universe-agency', 'Current coverage; date not specified', 'market-coverage'),
+  unverifiedMetric('hero-countries', '50+', 'Countries', 'digital-universe-agency', 'Current coverage; date not specified', 'market-coverage'),
+  unverifiedMetric('hero-support-availability', '24/7', 'Global support', 'digital-universe-agency', 'Current service level; date not specified', 'market-coverage'),
+  unverifiedMetric('hero-audits-this-week', '127', 'Seller audits', 'digital-universe-agency', 'Current week; date not specified', 'hero-form-proof'),
+  unverifiedMetric('hero-response-time', '24hr', 'Response time', 'digital-universe-agency', 'Current service level; date not specified', 'hero-form-proof'),
+  unverifiedMetric('hero-rating', '5-Star', 'Client rating', 'digital-universe-agency', 'Time period not specified', 'credential'),
+  unverifiedMetric('agency-active-sellers', '500+', 'Active sellers', 'digital-universe-agency', 'Current total; date not specified', 'agency-summary'),
+  unverifiedMetric('agency-revenue-2024', '$108M+', 'Revenue generated', 'digital-universe-agency', '2024', 'agency-summary'),
+  unverifiedMetric('agency-units-sold', '43,655+', 'Units sold', 'digital-universe-agency', 'Time period not specified', 'agency-summary'),
+  unverifiedMetric('agency-orders-processed', '41,953+', 'Orders processed', 'digital-universe-agency', 'Time period not specified', 'agency-summary'),
+  unverifiedMetric('agency-top-percent', 'Top 1%', 'Amazon partners', 'digital-universe-agency', 'Time period not specified', 'credential'),
+  unverifiedMetric('agency-success-rate', '98%', 'Success rate', 'digital-universe-agency', 'Time period not specified', 'credential'),
+  unverifiedMetric('agency-brands-worldwide', '500+', 'Brands worldwide', 'digital-universe-agency', 'Time period not specified', 'brand-summary'),
+  unverifiedMetric('agency-industries', '15+', 'Industries', 'digital-universe-agency', 'Time period not specified', 'brand-summary'),
+  unverifiedMetric('agency-categories', '25+', 'Categories', 'digital-universe-agency', 'Time period not specified', 'brand-summary'),
+  unverifiedMetric('agency-products-managed', '100M+', 'Products managed', 'digital-universe-agency', 'Time period not specified', 'brand-summary'),
+  unverifiedMetric('agency-uptime', '99.9%', 'Uptime', 'digital-universe-agency', 'Time period not specified', 'brand-summary'),
   unverifiedMetric('dashboard-orders', '41,953+', 'Total orders', 'selected-case-study', 'Multiple ranges in 2025', 'dashboard-summary'),
   unverifiedMetric('dashboard-units', '43,655+', 'Units sold', 'selected-case-study', 'Multiple ranges in 2025', 'dashboard-summary'),
   unverifiedMetric('dashboard-revenue', '₹1.1Cr+', 'Revenue generated', 'selected-case-study', 'Multiple ranges in 2025', 'dashboard-summary'),
@@ -114,7 +114,7 @@ export const EVIDENCE_CLAIMS: readonly EvidenceClaim[] = [
   {
     id: 'certified-ads-specialist',
     statement: 'Certified Ads Specialist',
-    scope: 'digital-universe-pro-agency',
+    scope: 'digital-universe-agency',
     timePeriod: 'Credential and date not specified',
     verificationStatus: 'unverified',
     evidenceSource: null,
@@ -122,7 +122,7 @@ export const EVIDENCE_CLAIMS: readonly EvidenceClaim[] = [
   {
     id: 'verified-service-provider',
     statement: 'Verified Service Provider',
-    scope: 'digital-universe-pro-agency',
+    scope: 'digital-universe-agency',
     timePeriod: 'Credential and date not specified',
     verificationStatus: 'unverified',
     evidenceSource: null,
@@ -130,7 +130,7 @@ export const EVIDENCE_CLAIMS: readonly EvidenceClaim[] = [
   {
     id: 'amazon-ads-verified-partner',
     statement: 'Amazon Ads Verified Partner',
-    scope: 'digital-universe-pro-agency',
+    scope: 'digital-universe-agency',
     timePeriod: 'Partner listing supplied by the business on 2026-09-25',
     verificationStatus: 'unverified',
     // Business-supplied link and display label; independent directory verification is pending.

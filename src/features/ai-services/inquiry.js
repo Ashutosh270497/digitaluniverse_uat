@@ -6,7 +6,7 @@ export const getAiContactHref = serviceId => serviceId
   : `/contact#${AI_CONTACT_ID}`;
 
 export const getAiInquiryMessage = (serviceTitle = 'AI solutions') =>
-  `Hello Digital Universe Pro, I would like to discuss ${serviceTitle} for my business. Here is what I would like to build or improve: `;
+  `Hello Digital Universe, I would like to discuss ${serviceTitle} for my business. Here is what I would like to build or improve: `;
 
 export const getAiWhatsAppUrl = serviceTitle => getWhatsAppUrl(getAiInquiryMessage(serviceTitle));
 

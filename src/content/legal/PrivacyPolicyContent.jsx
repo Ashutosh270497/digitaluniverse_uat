@@ -1,7 +1,7 @@
 const PrivacyPolicyContent = () => (
   <div className="mt-8 space-y-9 text-lg leading-relaxed text-gray-300">
     <p>
-      At Digital Universe Pro, we respect your privacy and are committed to protecting your
+      At Digital Universe, we respect your privacy and are committed to protecting your
       personal information.
     </p>
 
@@ -64,7 +64,7 @@ const PrivacyPolicyContent = () => (
         Contact Us
       </h2>
       <address className="mt-4 not-italic">
-        <p className="font-bold text-white">Digital Universe Pro</p>
+        <p className="font-bold text-white">Digital Universe</p>
         <p>
           Email:{' '}
           <a

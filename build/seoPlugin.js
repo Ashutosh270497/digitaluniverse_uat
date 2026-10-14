@@ -87,7 +87,7 @@ const createSeoHeadTags = (route) => {
     },
     {
       tag: 'meta',
-      attrs: { property: 'og:image:alt', content: 'Digital Universe Pro logo' },
+      attrs: { property: 'og:image:alt', content: 'Digital Universe logo' },
       injectTo: 'head',
     },
     { tag: 'meta', attrs: { name: 'twitter:card', content: 'summary' }, injectTo: 'head' },
@@ -100,7 +100,7 @@ const createSeoHeadTags = (route) => {
     },
     {
       tag: 'meta',
-      attrs: { name: 'twitter:image:alt', content: 'Digital Universe Pro logo' },
+      attrs: { name: 'twitter:image:alt', content: 'Digital Universe logo' },
       injectTo: 'head',
     },
   ]
@@ -128,7 +128,7 @@ export const technicalSeoPlugin = () => {
   let isBuild = false
 
   return {
-    name: 'digital-universe-pro-technical-seo',
+    name: 'digital-universe-technical-seo',
     configResolved(config) {
       isBuild = config.command === 'build'
     },

@@ -1,6 +1,6 @@
-# Digital Universe Pro Landing Page
+# Digital Universe Landing Page
 
-An accessible React website for Digital Universe Pro’s Amazon growth and AI services.
+An accessible React website for Digital Universe’s Amazon growth and AI services.
 
 ## Tech Stack
 
@@ -141,6 +141,7 @@ Business metrics and non-metric credentials are inventoried in:
 
 - `src/features/lead-capture/AuditForm.jsx` is the one canonical free-audit form, reused on the home and contact pages. `useAuditForm.js` owns its state, validation, focus, and submission flow.
 - The four requested lead fields are validated in the browser and again by `api/leads.js` through `server/leads/leadSubmission.js`, using the common `shared/leadSchema.js` contract.
+- After delivery, a celebratory success screen offers an optional Step 2 (store link, marketplaces, seller type, ad spend, challenges, notes) that is sent as a follow-up with the same lead ID. Lead alert and visitor confirmation emails are rendered by `server/leads/leadEmails.js`.
 - The browser submits JSON with `POST`; lead values are never placed in a URL.
 - Delivery is intentionally unconfigured until at least one server channel is set: a Resend email alert or an approved HTTPS CRM/webhook (`LEAD_WEBHOOK_URL`).
 - The UI shows success only after the destination acknowledges delivery. Missing configuration, network errors, and upstream failures remain visible failures.

@@ -128,7 +128,7 @@ const Footer = () => (
       </div>
 
       <div className="mt-12 flex flex-col gap-5 border-t border-white/10 pt-7 text-sm text-gray-300 md:flex-row md:items-center md:justify-between">
-        <p>© 2026 Digital Universe Pro. All rights reserved.</p>
+        <p>© 2026 Digital Universe. All rights reserved.</p>
         <nav aria-label="Legal navigation">
           <ul className="flex flex-wrap gap-x-6 gap-y-3">
             <li><a href={SITE_CONFIG.legalLinks.privacy} className="rounded hover:text-primary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">Privacy Policy</a></li>

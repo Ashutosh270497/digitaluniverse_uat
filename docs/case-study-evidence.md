@@ -6,7 +6,7 @@ No client case study, testimonial, client logo, or Seller Central screenshot cur
 
 Three legacy result sets remain in the private evidence-review inventory through their claim IDs. Their public values are not rendered because the repository does not contain source exports, metric definitions, agency-attribution methodology, or client publication permissions.
 
-The existing Amazon Service Provider Network URLs are the only first-party partner/service evidence used in the rebuilt case-study section. They link directly to the Digital Universe Pro listings on Amazon Seller Central.
+The existing Amazon Service Provider Network URLs are the only first-party partner/service evidence used in the rebuilt case-study section. They link directly to the Digital Universe listings on Amazon Seller Central.
 
 ## Source of truth
 
@@ -53,7 +53,7 @@ Supply the following for the three homepage candidates:
 
 1. Approved client name or anonymised label, plus the written publication-permission reference.
 2. Product category and exact Amazon marketplace or marketplaces.
-3. The initial commercial problem and the specific work Digital Universe Pro performed.
+3. The initial commercial problem and the specific work Digital Universe performed.
 4. Exact start and end dates, including any comparison-period logic.
 5. Source-dated before and after values for ACoS, TACoS, revenue, conversion rate, and organic sales share.
 6. Metric definitions, currency, and Seller Central or Amazon Ads source/export references.

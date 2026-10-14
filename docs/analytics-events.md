@@ -44,6 +44,9 @@ LinkedIn events without a configured conversion ID are deliberately not dispatch
 | `audit_form_submit` | A valid form begins the secure POST request | Form location |
 | `audit_form_success` | The lead API confirms downstream delivery | Form location |
 | `audit_form_failure` | The lead API, network, configuration, or rate limit prevents confirmed delivery | Sanitized failure category, HTTP status, field-name list |
+| `audit_details_submit` | Valid optional Step 2 audit details begin the secure POST request | Form location |
+| `audit_details_success` | The lead API confirms delivery of the Step 2 details | Form location |
+| `audit_details_skip` | The visitor skips the optional Step 2 | Form location |
 | `calendar_open` | The configured calendar link is opened after confirmed lead delivery | Form/CTA location, configured-calendar label |
 | `calendar_booked` | A supported calendar integration confirms a completed booking | Calendar provider and non-sensitive location context |
 | `whatsapp_click` | A WhatsApp contact link is activated | CTA location |
