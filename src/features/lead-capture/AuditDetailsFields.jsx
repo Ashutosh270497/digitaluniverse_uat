@@ -2,6 +2,7 @@ import { Check } from 'lucide-react';
 import {
   CHALLENGES,
   DETAILS_LIMITS,
+  MARKETPLACE_GROUPS,
   MARKETPLACES,
   SELLER_TYPES,
   getAdSpendOptions,
@@ -15,35 +16,50 @@ import {
   optionClassName,
 } from './formStyles.js';
 import { detailFieldIds } from './useAuditForm.js';
+import { getMarketplaceLogo } from '../../content/marketplaces.ts';
 
 const describedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;
 
-const ChipGroup = ({ name, legend, options, selected, onToggle, error, idPrefix }) => (
+const ChipOptions = ({ name, options, selected, onToggle, idPrefix }) => (
+  <div className="mt-2 flex flex-wrap gap-2">
+    {options.map((option) => {
+      const checked = selected.includes(option.value);
+      const logo = getMarketplaceLogo(option.value);
+      return (
+        <label key={option.value} className="relative">
+          <input
+            type="checkbox"
+            id={`${idPrefix}-${option.value}`}
+            name={name}
+            value={option.value}
+            checked={checked}
+            onChange={() => onToggle(name, option.value)}
+            className="peer sr-only"
+          />
+          <span className={chipClassName}>
+            {checked && <Check className="h-4 w-4" aria-hidden="true" />}
+            {logo && <img src={logo.logo} alt="" width="20" height="20" decoding="async" className="h-5 w-5 rounded object-contain" />}
+            {option.flag && <span aria-hidden="true">{option.flag}</span>}
+            {option.label}
+          </span>
+        </label>
+      );
+    })}
+  </div>
+);
+
+// Multi-select chips; `groups` splits the options under small sub-labels.
+const ChipGroup = ({ name, legend, options, groups, selected, onToggle, error, idPrefix }) => (
   <fieldset aria-describedby={error ? `${idPrefix}-error` : undefined}>
     <legend className={labelClassName}>{legend}</legend>
-    <div className="mt-2 flex flex-wrap gap-2">
-      {options.map((option) => {
-        const checked = selected.includes(option.value);
-        return (
-          <label key={option.value} className="relative">
-            <input
-              type="checkbox"
-              id={`${idPrefix}-${option.value}`}
-              name={name}
-              value={option.value}
-              checked={checked}
-              onChange={() => onToggle(name, option.value)}
-              className="peer sr-only"
-            />
-            <span className={chipClassName}>
-              {checked && <Check className="h-4 w-4" aria-hidden="true" />}
-              {option.flag && <span aria-hidden="true">{option.flag}</span>}
-              {option.label}
-            </span>
-          </label>
-        );
-      })}
-    </div>
+    {groups ? groups.map((group) => (
+      <div key={group.id} className="mt-2">
+        <p className="text-xs font-bold uppercase tracking-[0.08em] text-gray-500">{group.label}</p>
+        <ChipOptions name={name} options={options.filter((option) => option.group === group.id)} selected={selected} onToggle={onToggle} idPrefix={idPrefix} />
+      </div>
+    )) : (
+      <ChipOptions name={name} options={options} selected={selected} onToggle={onToggle} idPrefix={idPrefix} />
+    )}
     {error && <p id={`${idPrefix}-error`} className={errorClassName}>{error}</p>}
   </fieldset>
 );
@@ -80,6 +96,7 @@ const AuditDetailsFields = ({ details, errors, revenueCurrency, onChange, onTogg
       name="marketplaces"
       legend="Where do you sell? (choose all that apply)"
       options={MARKETPLACES}
+      groups={MARKETPLACE_GROUPS}
       selected={details.marketplaces}
       onToggle={onToggle}
       error={errors.marketplaces}

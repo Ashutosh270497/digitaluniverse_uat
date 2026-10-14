@@ -1,6 +1,7 @@
 import { Component, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { ArrowRight, Check, ExternalLink, Globe2, Pause, Play } from 'lucide-react';
 import AmazonPartnerBadge from '../../components/ui/AmazonPartnerBadge.jsx';
+import { MarketplaceCards } from '../../components/ui/OtherMarketplaces.jsx';
 import { revealAmazonSpnDirectory } from '../../components/ui/amazonPartnerNavigation.js';
 import { VERIFIED_MARKETPLACE_LOCATIONS } from '../../content/marketplaceCoverage.ts';
 import { SITE_CONFIG, SPN_SERVICES } from '../../config/site.js';
@@ -172,6 +173,7 @@ const GlobalCoverageSection = () => {
           <p className="max-w-2xl">Regions show marketplace support, not office locations. Specific countries and scope are agreed with you before work begins.</p>
           <a href="#amazon-credentials" onClick={revealAmazonSpnDirectory} className="shrink-0 self-start rounded text-sm font-semibold text-primary-300 underline underline-offset-4 hover:text-primary-200">View all partner listings</a>
         </div>
+        <MarketplaceCards />
       </div>
     </section>
   );

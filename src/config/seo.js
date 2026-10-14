@@ -47,7 +47,7 @@ export const SEO_ROUTES = Object.freeze([
     entryName: 'main',
     title: 'Amazon Growth & Marketplace Services | Digital Universe',
     description:
-      'Grow your Amazon business with Digital Universe. Explore PPC advertising, listing SEO, account management and global marketplace expansion.',
+      'Grow on Amazon, Flipkart, Meesho and TikTok Shop with Digital Universe: PPC advertising, listing SEO, account management and marketplace expansion.',
     h1: HERO_HEADLINE,
     breadcrumbLabel: 'Home',
     kind: 'home',

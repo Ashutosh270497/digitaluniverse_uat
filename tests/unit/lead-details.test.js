@@ -56,12 +56,18 @@ test('details are described with human-readable labels', () => {
   });
   assert.deepEqual(describeLeadDetails(data), {
     storeUrl: '',
-    marketplaces: 'India, UAE',
+    marketplaces: 'Amazon India, Amazon UAE',
     sellerType: 'Brand owner',
     adSpend: '₹2,00,000–₹10,00,000',
     challenges: 'Low rankings & visibility, International expansion',
     notes: '',
   });
+});
+
+test('Step 2 accepts Flipkart, Meesho and TikTok Shop alongside Amazon regions', () => {
+  const { data, isValid } = validateLeadDetailsPayload({ ...base, marketplaces: ['in', 'flipkart', 'meesho', 'tiktok-shop'] });
+  assert.equal(isValid, true);
+  assert.equal(describeLeadDetails(data).marketplaces, 'Amazon India, Flipkart, Meesho, TikTok Shop');
 });
 
 test('revenue bands have compact labels for subject lines', () => {
