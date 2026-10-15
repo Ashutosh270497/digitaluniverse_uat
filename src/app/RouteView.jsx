@@ -9,6 +9,7 @@ const AIServicesPage = lazy(() => import('../pages/ai-services/AIServicesPage.js
 const SpnPage = lazy(() => import('../pages/spn/SpnPage.jsx'));
 const AboutPage = lazy(() => import('../pages/about/AboutPage.jsx'));
 const ContactPage = lazy(() => import('../pages/contact/ContactPage.jsx'));
+const ThankYouPage = lazy(() => import('../pages/thank-you/ThankYouPage.jsx'));
 const CaseStudiesPage = lazy(() => import('../pages/case-studies/CaseStudiesPage.jsx'));
 const CaseStudyDetailPage = lazy(() => import('../pages/case-studies/CaseStudyDetailPage.jsx'));
 const LegalNoticePage = lazy(() => import('../pages/legal/LegalNoticePage.jsx'));
@@ -43,6 +44,7 @@ const RouteView = ({ pathname, requestedService }) => {
   let page;
   switch (currentRoute.type) {
     case 'home': page = <HomePage />; break;
+    case 'thank-you': page = <ThankYouPage />; break;
     case 'legal': page = <LegalNoticePage route={currentRoute.route} />; break;
     case 'marketing':
       if (currentRoute.route.kind === 'service') page = <ServicePage route={currentRoute.route} />;

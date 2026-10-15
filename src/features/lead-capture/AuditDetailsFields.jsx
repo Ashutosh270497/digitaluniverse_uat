@@ -15,7 +15,7 @@ import {
   labelClassName,
   optionClassName,
 } from './formStyles.js';
-import { detailFieldIds } from './useAuditForm.js';
+import { detailFieldIds } from './useAuditDetails.js';
 import { getMarketplaceLogo } from '../../content/marketplaces.ts';
 
 const describedBy = (...ids) => ids.filter(Boolean).join(' ') || undefined;

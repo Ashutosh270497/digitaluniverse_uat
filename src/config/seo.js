@@ -8,6 +8,7 @@ import {
   LEGAL_ROUTES,
   MARKETING_ROUTES,
   normalizePathname,
+  THANK_YOU_ROUTE,
 } from './routes.js';
 
 export const CANONICAL_ORIGIN = SITE_CONFIG.canonicalOrigin;
@@ -170,6 +171,19 @@ export const SEO_ROUTES = Object.freeze([
     h1: 'Let’s talk about your next business opportunity.',
     breadcrumbLabel: 'Contact',
     kind: 'contact',
+  }),
+  seoRoute({
+    key: 'thankYou',
+    path: THANK_YOU_ROUTE,
+    entry: 'thank-you/index.html',
+    entryName: 'thankYou',
+    title: 'Audit Request Received | Digital Universe',
+    description:
+      'Your Digital Universe audit request confirmation: what happens next, optional store details and ways to reach the team on WhatsApp.',
+    h1: 'Thanks for getting in touch',
+    breadcrumbLabel: 'Thank you',
+    indexable: false,
+    kind: 'thank-you',
   }),
   ...Object.values(LEGAL_ROUTES).map((route) =>
     seoRoute({

@@ -105,7 +105,19 @@ const asValueList = (value) => (Array.isArray(value)
   ? [...new Set(value.filter((item) => typeof item === 'string'))]
   : null);
 
-const validateIdentity = (data) => {
+// Leads give both an email and a WhatsApp number. Pages loaded before that change send one
+// contactMethod/contact pair; it is mapped here and accepted with a single contact for now.
+export const normalizeContactFields = (payload = {}) => {
+  const email = asTrimmedString(payload.email);
+  const whatsapp = asTrimmedString(payload.whatsapp);
+  if (email || whatsapp || !payload.contactMethod) return { email, whatsapp, legacy: false };
+  const contact = asTrimmedString(payload.contact);
+  return payload.contactMethod === CONTACT_METHODS.whatsapp
+    ? { email: '', whatsapp: contact, legacy: true }
+    : { email: contact, whatsapp: '', legacy: true };
+};
+
+const validateIdentity = (data, { legacy = false } = {}) => {
   const errors = {};
 
   if (!data.name) {
@@ -114,36 +126,33 @@ const validateIdentity = (data) => {
     errors.name = 'Name must be 100 characters or fewer.';
   }
 
-  if (!data.contact) {
-    errors.contact = data.contactMethod === CONTACT_METHODS.whatsapp
-      ? 'Enter your WhatsApp number.'
-      : 'Enter your work email.';
-  } else if (
-    data.contactMethod === CONTACT_METHODS.email &&
-    (data.contact.length > 254 || !emailPattern.test(data.contact))
-  ) {
-    errors.contact = 'Enter a valid work email.';
-  } else if (
-    data.contactMethod === CONTACT_METHODS.whatsapp &&
-    !whatsappPattern.test(data.contact.replace(/[\s()-]/g, ''))
-  ) {
-    errors.contact = 'Enter a valid WhatsApp number including country code.';
-  } else if (!Object.values(CONTACT_METHODS).includes(data.contactMethod)) {
-    errors.contact = 'Choose email or WhatsApp as your contact method.';
+  const singleContactOk = legacy && Boolean(data.email || data.whatsapp);
+
+  if (!data.email) {
+    if (!singleContactOk) errors.email = 'Enter your email address.';
+  } else if (data.email.length > 254 || !emailPattern.test(data.email)) {
+    errors.email = 'Enter a valid email address, for example you@yourbrand.com.';
+  }
+
+  if (!data.whatsapp) {
+    if (!singleContactOk) errors.whatsapp = 'Enter your WhatsApp number, including the country code.';
+  } else if (!whatsappPattern.test(data.whatsapp.replace(/[\s()-]/g, ''))) {
+    errors.whatsapp = 'Enter a valid WhatsApp number, including the country code.';
   }
 
   return errors;
 };
 
 export const validateLeadPayload = (payload = {}, { requireMonthlyRevenue = true } = {}) => {
+  const contacts = normalizeContactFields(payload);
   const data = {
     name: asTrimmedString(payload.name),
-    contactMethod: asTrimmedString(payload.contactMethod),
-    contact: asTrimmedString(payload.contact),
+    email: contacts.email,
+    whatsapp: contacts.whatsapp,
     revenueCurrency: asTrimmedString(payload.revenueCurrency),
     monthlyRevenue: asTrimmedString(payload.monthlyRevenue),
   };
-  const errors = validateIdentity(data);
+  const errors = validateIdentity(data, { legacy: contacts.legacy });
 
   const currencyIsValid = REVENUE_CURRENCIES.some(currency => currency.code === data.revenueCurrency);
   if ((requireMonthlyRevenue || data.monthlyRevenue || data.revenueCurrency) && !currencyIsValid) {
@@ -165,11 +174,12 @@ export const validateLeadPayload = (payload = {}, { requireMonthlyRevenue = true
 
 // Step 2 is optional, but a submission must carry the lead it belongs to and at least one answer.
 export const validateLeadDetailsPayload = (payload = {}) => {
+  const contacts = normalizeContactFields(payload);
   const data = {
     leadId: asTrimmedString(payload.leadId),
     name: asTrimmedString(payload.name),
-    contactMethod: asTrimmedString(payload.contactMethod),
-    contact: asTrimmedString(payload.contact),
+    email: contacts.email,
+    whatsapp: contacts.whatsapp,
     revenueCurrency: asTrimmedString(payload.revenueCurrency),
     storeUrl: asTrimmedString(payload.storeUrl),
     marketplaces: asValueList(payload.marketplaces) ?? [],
@@ -181,7 +191,7 @@ export const validateLeadDetailsPayload = (payload = {}) => {
   const errors = {};
 
   if (!LEAD_ID_PATTERN.test(data.leadId)) errors.leadId = 'This audit request could not be matched. Please submit the form again.';
-  Object.assign(errors, validateIdentity(data));
+  Object.assign(errors, validateIdentity(data, { legacy: contacts.legacy }));
 
   if (data.storeUrl.length > DETAILS_LIMITS.storeUrl) {
     errors.storeUrl = `Keep the store link under ${DETAILS_LIMITS.storeUrl} characters.`;

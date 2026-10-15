@@ -28,6 +28,9 @@ RewriteCond %{HTTPS} !=on [OR]
 RewriteCond %{HTTP_HOST} !^digitaluniversepro\.co$ [NC]
 RewriteRule ^ https://digitaluniversepro.co%{REQUEST_URI} [R=301,L,NE]
 
+# The legacy audit status page now lives at /thank-you.
+RewriteRule ^thank-you\.html$ /thank-you [R=301,L,NE]
+
 # Consolidate the legacy Amazon management URL.
 RewriteRule ^amazon-management/?$ /amazon-account-management [R=301,L,NE]
 

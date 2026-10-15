@@ -1,7 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { BRAND } from '../../shared/brand.js';
 import {
-  CONTACT_METHODS,
   describeLeadDetails,
   getAdSpendOptions,
   getMonthlyRevenueOptions,
@@ -244,7 +243,7 @@ const deliverToChannels = async ({ channels, message, env, fetchImpl }) => {
 // Best effort: the lead is already delivered, so a failed confirmation is only logged.
 const sendVisitorConfirmation = async ({ env, fetchImpl, lead, logoUrl }) => {
   const from = getConfirmationSender(env);
-  if (!from || !getResendApiKey(env) || lead.contactMethod !== CONTACT_METHODS.email) return;
+  if (!from || !getResendApiKey(env) || !lead.email) return;
 
   try {
     const result = await withTimeout(env, (signal) => sendResendEmail({
@@ -252,7 +251,7 @@ const sendVisitorConfirmation = async ({ env, fetchImpl, lead, logoUrl }) => {
       fetchImpl,
       signal,
       from,
-      to: [lead.contact],
+      to: [lead.email],
       replyTo: String(env.LEAD_CONFIRMATION_REPLY_TO || BRAND.contact.email).trim(),
       email: renderVisitorConfirmation(lead, { logoUrl }),
     }));
@@ -378,8 +377,8 @@ export const handleLeadSubmission = async (
         receivedAt,
         leadId: details.leadId,
         name: details.name,
-        contactMethod: details.contactMethod,
-        contact: details.contact,
+        email: details.email,
+        whatsapp: details.whatsapp,
         storeUrl: details.storeUrl,
         marketplaces: details.marketplaces,
         sellerType: details.sellerType,
@@ -394,7 +393,7 @@ export const handleLeadSubmission = async (
         notes: details.notes,
       },
       email: renderDetailsAlert(details, described, { logoUrl }),
-      replyTo: details.contactMethod === CONTACT_METHODS.email ? details.contact : undefined,
+      replyTo: details.email || undefined,
     };
     successBody = { delivered: true, message: 'Thanks — your audit details have been shared.' };
   } else {
@@ -419,8 +418,8 @@ export const handleLeadSubmission = async (
       leadId: createLeadId(now()),
       formLocation: getFormLocation(body.formLocation),
       name: validation.data.name,
-      contactMethod: validation.data.contactMethod,
-      contact: validation.data.contact,
+      email: validation.data.email,
+      whatsapp: validation.data.whatsapp,
       ...(validation.data.monthlyRevenue
         ? {
           monthlyAmazonRevenueRange: validation.data.monthlyRevenue,
@@ -433,7 +432,7 @@ export const handleLeadSubmission = async (
     message = {
       payload: lead,
       email: renderLeadAlert(lead, { logoUrl }),
-      replyTo: lead.contactMethod === CONTACT_METHODS.email ? lead.contact : undefined,
+      replyTo: lead.email || undefined,
     };
     successBody = { delivered: true, message: 'Your Amazon audit request has been received.', leadId: lead.leadId };
   }

@@ -11,7 +11,7 @@ This repository contains one React/Vite website and a small lead-delivery API. I
 | `src/components/layout/` | Shared page layouts, headers, and footer. |
 | `src/components/ui/` | Reusable presentation elements such as breadcrumbs and lists. |
 | `src/components/case-studies/` | Case-study presentation reused by multiple pages. |
-| `src/features/lead-capture/` | Audit form, state hook, browser submission client, CTA behavior, consent, and public configuration. |
+| `src/features/lead-capture/` | Audit form, state hooks, the `/thank-you` hand-off, optional Step 2 form, browser submission client, CTA behavior, consent, and public configuration. |
 | `src/features/ai-services/` | AI illustration, card styles, project selection and contextual WhatsApp/email enquiries. |
 | `src/features/global-coverage/` | Lazy vector map, region selection, directory panel, bounded pan/zoom and guided tour. |
 | `src/features/roi-calculator/` | Growth calculator inputs, result cards, currency formatting and validated scenario arithmetic. |
@@ -25,7 +25,7 @@ This repository contains one React/Vite website and a small lead-delivery API. I
 | `server/` | Server-only lead validation policy, rate limits, and email/webhook delivery. |
 | `api/` | Deployment adapter exposing the server handler. |
 | `build/` | Vite SEO plugin: static search shell, head tags, brand image, sitemap, and robots output. |
-| `public/` | Files copied unchanged, including Apache rules and the legacy thank-you URL. |
+| `public/` | Files copied unchanged, including Apache rules. |
 | `scripts/audits/`, `scripts/lib/` | Executable audits and their shared Chrome/CDP helpers. |
 | `tests/unit/` | Validation, calculations, routing, analytics, and experiment behavior. |
 | `tests/integration/` | Lead-delivery behavior and conversion/form wiring. |
@@ -67,7 +67,7 @@ The browser never receives delivery credentials. Static site hosting still requi
 
 ## Assets and generated output
 
-Use imports for production images in `src/assets/`. The original JPEGs in `docs/reference-assets/` are retained deliberately and are not build inputs. Do not copy unused artwork into `public/`, which Vite copies wholesale. Keep `public/thank-you.html` available as a legacy URL even though the current form uses inline success.
+Use imports for production images in `src/assets/`. The original JPEGs in `docs/reference-assets/` are retained deliberately and are not build inputs. Do not copy unused artwork into `public/`, which Vite copies wholesale. Do not add a static `public/thank-you.html`: it would shadow the React `/thank-you` page on some hosts, and both hosts redirect that legacy URL.
 
 `dist/`, `node_modules/`, and `artifacts/` are generated/local directories and are ignored by Git. The old root ZIP is preserved at `artifacts/legacy/dist.zip`; it is not the current deployable build. Map audit screenshots are generated into `artifacts/audits/`. Historical screenshots referenced by documentation remain in `docs/screenshots/`.
 

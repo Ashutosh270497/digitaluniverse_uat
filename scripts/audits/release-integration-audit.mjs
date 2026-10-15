@@ -126,21 +126,12 @@ const routeAudit = async (client) => {
   assert.equal(notFound.h1, 'Page not found')
   assert.equal(notFound.robots, 'noindex, nofollow')
 
-  await navigate(client, '/thank-you.html')
-  const legacyStatus = await evaluate(client, `({
-    title: document.title,
-    h1: (document.querySelector('h1')?.getAttribute('aria-label') || document.querySelector('h1')?.textContent?.trim()),
-    robots: document.querySelector('meta[name="robots"]')?.content,
-    hrefs: [...document.querySelectorAll('a[href]')].map((link) => link.href),
-    unsafeBlankLinks: [...document.querySelectorAll('a[target="_blank"]')]
-      .filter((link) => !/noopener|noreferrer/.test(link.rel))
-      .map((link) => link.href),
-  })`)
-  assert.equal(legacyStatus.title, 'Audit Request Status | Digital Universe')
-  assert.equal(legacyStatus.h1, 'Return to the audit form')
-  assert.equal(legacyStatus.robots, 'noindex, nofollow')
-  assert.deepEqual(legacyStatus.unsafeBlankLinks, [])
-  results.push({ path: '/thank-you.html', hrefs: legacyStatus.hrefs })
+  await navigate(client, '/thank-you/')
+  assert.equal(
+    await evaluate(client, `document.querySelector('meta[name="robots"]')?.content`),
+    'noindex, nofollow',
+    '/thank-you is not indexed',
+  )
 
   return results
 }
@@ -316,7 +307,7 @@ const croTreatmentAudit = async (client) => {
   return EXPECTED_CRO_EXPERIMENT
 }
 
-const setFormValuesExpression = ({ contact = 'qa@example.com', monthlyRevenue = '10k-50k' } = {}) => `(() => {
+const setFormValuesExpression = ({ email = 'qa@example.com', whatsapp = '98765 43210', monthlyRevenue = '10k-50k' } = {}) => `(() => {
   const setValue = (element, value) => {
     const descriptor = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value');
     descriptor.set.call(element, value);
@@ -324,10 +315,32 @@ const setFormValuesExpression = ({ contact = 'qa@example.com', monthlyRevenue = 
     element.dispatchEvent(new Event('change', { bubbles: true }));
   };
   setValue(document.getElementById('primary-audit-name'), 'Release QA');
-  setValue(document.getElementById('primary-audit-contact'), ${JSON.stringify(contact)});
+  setValue(document.getElementById('primary-audit-email'), ${JSON.stringify(email)});
+  setValue(document.getElementById('primary-audit-whatsapp'), ${JSON.stringify(whatsapp)});
   const revenue = document.getElementById('primary-audit-monthly-revenue');
   if (revenue) setValue(revenue, ${JSON.stringify(monthlyRevenue)});
 })()`
+
+const THANK_YOU_LOADED = `location.pathname.replace(/[/]$/, '') === '/thank-you'
+  && document.body.textContent.includes('We received your audit request.')
+  && !document.querySelector('#root > main > p[role="status"]')`
+
+const mockLeadApiExpression = ({ leadId = '', submitForm = '' } = {}) => `(() => {
+  window.__qaRequests = [];
+  window.fetch = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    window.__qaRequests.push(body);
+    return new Response(
+      JSON.stringify(body.stage === 'details'
+        ? { delivered: true, message: 'Details acknowledged.' }
+        : { delivered: true, message: 'Lead acknowledged.', ...(${JSON.stringify(leadId)} ? { leadId: ${JSON.stringify(leadId)} } : {}) }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
+  };
+  ${submitForm ? `document.getElementById(${JSON.stringify(submitForm)}).requestSubmit();` : ''}
+})()`
+
+const findDetailsLink = `[...document.querySelectorAll('a[href="#audit-details"]')].find((link) => link.textContent.includes('Help us prepare your audit'))`
 
 const formAudit = async (client) => {
   await navigate(client, '/contact/#primary-audit-form')
@@ -341,26 +354,35 @@ const formAudit = async (client) => {
   await wait(100)
   assert.equal(await evaluate(client, `document.activeElement?.id`), 'primary-audit-name')
   assert.ok(await evaluate(client, `(() => {
-    const expected = document.getElementById('primary-audit-monthly-revenue') ? 3 : 2;
+    const expected = document.getElementById('primary-audit-monthly-revenue') ? 4 : 3;
     return document.querySelectorAll('[aria-invalid="true"]').length >= expected;
-  })()`))
+  })()`), 'name, email, WhatsApp and revenue are all required')
 
-  await evaluate(client, setFormValuesExpression({ contact: 'not-an-email' }))
+  await evaluate(client, setFormValuesExpression({ email: 'not-an-email' }))
   await evaluate(client, `document.getElementById('primary-audit-form').requestSubmit()`)
   await wait(100)
-  assert.equal(await evaluate(client, `document.activeElement?.id`), 'primary-audit-contact')
+  assert.equal(await evaluate(client, `document.activeElement?.id`), 'primary-audit-email')
 
-  assert.equal(await evaluate(client, `document.querySelector('[name="amazonUrl"]')`), null, 'Amazon URL field is removed')
+  await evaluate(client, setFormValuesExpression({ whatsapp: '' }))
+  await evaluate(client, `document.getElementById('primary-audit-form').requestSubmit()`)
+  await wait(100)
+  assert.equal(await evaluate(client, `document.activeElement?.id`), 'primary-audit-whatsapp', 'WhatsApp is required alongside email')
+
+  assert.equal(await evaluate(client, `document.querySelector('[name="amazonUrl"], [name="contactMethod"]')`), null, 'retired fields are removed')
 
   await evaluate(client, setFormValuesExpression())
   await evaluate(client, `(() => {
     window.__qaFetchMode = 'failure';
-    window.fetch = async () => new Response(
-      JSON.stringify(window.__qaFetchMode === 'success'
-        ? { delivered: true, message: 'QA delivery acknowledged.' }
-        : { delivered: false, message: 'QA simulated delivery failure.' }),
-      { status: window.__qaFetchMode === 'success' ? 200 : 502, headers: { 'Content-Type': 'application/json' } },
-    );
+    window.__qaRequests = [];
+    window.fetch = async (_url, options) => {
+      window.__qaRequests.push(JSON.parse(options.body));
+      return new Response(
+        JSON.stringify(window.__qaFetchMode === 'success'
+          ? { delivered: true, message: 'QA delivery acknowledged.' }
+          : { delivered: false, message: 'QA simulated delivery failure.' }),
+        { status: window.__qaFetchMode === 'success' ? 200 : 502, headers: { 'Content-Type': 'application/json' } },
+      );
+    };
     document.getElementById('primary-audit-form').requestSubmit();
   })()`)
   assert.equal(
@@ -368,25 +390,39 @@ const formAudit = async (client) => {
     true,
     'form failure state',
   )
-  assert.equal(await evaluate(client, `document.body.textContent.includes('We received your audit request.')`), false)
+  const failure = await evaluate(client, `({
+    pathname: location.pathname,
+    fallback: Boolean([...document.querySelectorAll('a[href^="https://wa.me/"]')].find((link) => link.textContent.includes('Contact us on WhatsApp instead'))),
+    request: window.__qaRequests[0],
+  })`)
+  assert.equal(failure.pathname, '/contact/', 'a failed delivery stays on the form')
+  assert.equal(failure.fallback, true, 'a failed delivery offers WhatsApp')
+  assert.equal(failure.request.email, 'qa@example.com')
+  assert.equal(failure.request.whatsapp, '+91 98765 43210')
+  assert.equal('contact' in failure.request || 'contactMethod' in failure.request, false)
 
   await evaluate(client, `(() => {
     window.__qaFetchMode = 'success';
     document.getElementById('primary-audit-form').requestSubmit();
   })()`)
-  assert.equal(
-    await waitForBrowserCondition(client, `document.body.textContent.includes('We received your audit request.')`),
-    true,
-    'form retry success state',
-  )
+  assert.equal(await waitForBrowserCondition(client, THANK_YOU_LOADED, 10_000), true, 'a delivered lead continues on /thank-you')
+  await wait(WAIT_MS)
   const success = await evaluate(client, `({
-    personalised: document.body.textContent.includes('Thanks, Release!'),
+    personalised: document.querySelector('h1')?.textContent.includes('Thanks, Release!'),
+    focused: document.activeElement === document.querySelector('h1'),
+    contacts: document.body.textContent.includes('+91 98765 43210') && document.body.textContent.includes('qa@example.com'),
+    url: location.href,
     whatsapp: Boolean(document.querySelector('a[href^="https://wa.me/"]')),
     calendar: Boolean(document.querySelector('a[href*="calendar"], a[href*="calendly"]')),
+    detailsLink: Boolean(${findDetailsLink}),
   })`)
-  assert.equal(success.personalised, true, 'success heading greets the visitor by first name')
+  assert.equal(success.personalised, true, 'thank-you heading greets the visitor by first name')
+  assert.equal(success.focused, true, 'thank-you heading receives focus')
+  assert.equal(success.contacts, true, 'thank-you page confirms both contacts')
+  assert.doesNotMatch(success.url, /qa%40example|qa@example|98765/, 'no personal data in the thank-you URL')
   assert.equal(success.whatsapp, true)
   assert.equal(success.calendar, false, 'calendar remains absent without an approved URL')
+  assert.equal(success.detailsLink, false, 'optional Step 2 is offered only when the API returns a lead ID')
 
   await navigate(client, '/contact/?release_form=keyboard#primary-audit-form')
   assert.equal(
@@ -395,24 +431,10 @@ const formAudit = async (client) => {
     'keyboard form reload',
   )
   await evaluate(client, setFormValuesExpression())
-  await evaluate(client, `(() => {
-    window.fetch = async () => new Response(
-      JSON.stringify({ delivered: true, message: 'Keyboard QA delivery acknowledged.' }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
-    );
-    document.querySelector('#primary-audit-form button[type="submit"]').focus();
-  })()`)
+  await evaluate(client, mockLeadApiExpression())
+  await evaluate(client, `document.querySelector('#primary-audit-form button[type="submit"]').focus()`)
   await pressKey(client, 'Enter')
-  assert.equal(
-    await waitForBrowserCondition(client, `document.body.textContent.includes('We received your audit request.')`),
-    true,
-    'keyboard form submission',
-  )
-  assert.equal(
-    await evaluate(client, `Boolean([...document.querySelectorAll('button')].find((button) => button.textContent.includes('Help us prepare your audit')))`),
-    false,
-    'optional Step 2 is offered only when the API returns a lead ID',
-  )
+  assert.equal(await waitForBrowserCondition(client, THANK_YOU_LOADED, 10_000), true, 'keyboard form submission')
 
   await navigate(client, '/contact/?release_form=details#primary-audit-form')
   assert.equal(
@@ -421,26 +443,17 @@ const formAudit = async (client) => {
     'details form reload',
   )
   await evaluate(client, setFormValuesExpression())
-  await evaluate(client, `(() => {
-    window.__qaRequests = [];
-    window.fetch = async (_url, options) => {
-      const body = JSON.parse(options.body);
-      window.__qaRequests.push(body);
-      return new Response(
-        JSON.stringify(body.stage === 'details'
-          ? { delivered: true, message: 'Details acknowledged.' }
-          : { delivered: true, message: 'Lead acknowledged.', leadId: 'DU-20261014-QA2C' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } },
-      );
-    };
-    document.getElementById('primary-audit-form').requestSubmit();
-  })()`)
+  await evaluate(client, mockLeadApiExpression({ leadId: 'DU-20261014-QA2C', submitForm: 'primary-audit-form' }))
+  assert.equal(await waitForBrowserCondition(client, THANK_YOU_LOADED, 10_000), true, 'details lead continues on /thank-you')
   assert.equal(
-    await waitForBrowserCondition(client, `Boolean([...document.querySelectorAll('button')].find((button) => button.textContent.includes('Help us prepare your audit')))`),
+    await waitForBrowserCondition(client, `Boolean(${findDetailsLink}) && document.body.textContent.includes('DU-20261014-QA2C')`),
     true,
-    'Step 2 invitation after a delivered lead',
+    'Step 2 invitation and request ID after a delivered lead',
   )
-  await evaluate(client, `[...document.querySelectorAll('button')].find((button) => button.textContent.includes('Help us prepare your audit')).click()`)
+  await wait(WAIT_MS)
+  // The thank-you page is a new document, so the API mock is installed again.
+  await evaluate(client, mockLeadApiExpression())
+  await evaluate(client, `${findDetailsLink}.click()`)
   assert.equal(
     await waitForBrowserCondition(client, `document.activeElement?.id === 'audit-details-store'`),
     true,
@@ -453,15 +466,17 @@ const formAudit = async (client) => {
     document.getElementById('audit-details-marketplace-in').click();
   })()`)
   await wait(100)
-  await evaluate(client, `document.getElementById('primary-audit-form').requestSubmit()`)
+  await evaluate(client, `document.getElementById('audit-details-form').requestSubmit()`)
   assert.equal(
     await waitForBrowserCondition(client, `document.body.textContent.includes('What you shared')`),
     true,
     'Step 2 completion summary',
   )
-  const detailsRequest = await evaluate(client, `window.__qaRequests[1]`)
+  const detailsRequest = await evaluate(client, `window.__qaRequests[0]`)
   assert.equal(detailsRequest.stage, 'details')
   assert.equal(detailsRequest.leadId, 'DU-20261014-QA2C')
+  assert.equal(detailsRequest.email, 'qa@example.com')
+  assert.equal(detailsRequest.whatsapp, '+91 98765 43210')
   assert.equal(detailsRequest.storeUrl, 'amazon.in/stores/ReleaseQA')
   assert.deepEqual(detailsRequest.marketplaces, ['in'])
 }
