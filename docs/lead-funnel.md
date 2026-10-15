@@ -95,7 +95,7 @@ The webhook channel receives a JSON POST containing the fields below. Email aler
 - `formLocation` (`hero`, `contact_page` or `unspecified`)
 - `name`
 - `email`
-- `whatsapp` (international format, for example `+91 97924 20796`)
+- `whatsapp` (international format, for example `+91 XXXXX XXXXX`)
 - `monthlyAmazonRevenueRange`
 - `monthlyAmazonRevenueCurrency` (`USD`, `INR` or `GBP`)
 - `monthlyAmazonRevenueRangeLabel` (the localized range shown in the form)

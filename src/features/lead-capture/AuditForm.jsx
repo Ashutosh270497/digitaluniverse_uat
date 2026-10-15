@@ -127,7 +127,7 @@ const AuditForm = ({ formLocation = 'unspecified' }) => {
               autoComplete={formData.dialCode ? 'tel-national' : 'tel'}
               enterKeyHint="next"
               required
-              placeholder={formData.dialCode ? '97924 20796' : '+971 50 123 4567'}
+              placeholder={formData.dialCode ? 'XXXXX XXXXX' : '+971 XX XXX XXXX'}
               value={formData.whatsapp}
               onChange={handleFieldChange}
               aria-invalid={Boolean(errors.whatsapp)}
