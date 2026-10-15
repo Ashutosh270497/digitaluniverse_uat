@@ -11,12 +11,16 @@ test('canonical form uses persistent labels, required fields, and accessible err
   ])).join('\n');
 
   assert.match(source, /<label htmlFor=\{PRIMARY_AUDIT_FIRST_FIELD_ID\}/);
-  assert.match(source, /Work email or WhatsApp number/);
+  assert.match(source, /Email <span aria-hidden="true">\*<\/span>/);
+  assert.match(source, /WhatsApp number <span aria-hidden="true">\*<\/span>/);
+  assert.doesNotMatch(source, /contactMethod|Work email or WhatsApp number/);
   assert.doesNotMatch(source, /Amazon store or ASIN URL/);
   assert.match(source, /Revenue currency/);
   assert.match(source, /Monthly Amazon revenue range/);
-  assert.equal(source.match(/\brequired\b/g)?.length ?? 0, 4);
-  assert.match(source, /type=\{contactIsWhatsApp \? 'tel' : 'email'\}/);
+  assert.equal(source.match(/\brequired\b/g)?.length ?? 0, 5);
+  assert.match(source, /type="email"[\s\S]*name="email"[\s\S]*autoComplete="email"/);
+  assert.match(source, /type="tel"[\s\S]*name="whatsapp"/);
+  assert.match(source, /autoComplete="tel-country-code"/);
   assert.match(source, /name="revenueCurrency"/);
   assert.match(source, /autoComplete="name"/);
   assert.match(source, /aria-describedby/);
@@ -35,21 +39,35 @@ test('keyboard submission uses native form and submit-button semantics', async (
 });
 
 test('form has explicit loading, success, error, consent, calendar, and WhatsApp states', async () => {
-  const source = (await Promise.all([
-    readFile(formUrl, 'utf8'),
-    readFile(new URL('../../src/features/lead-capture/useAuditForm.js', import.meta.url), 'utf8'),
-  ])).join('\n');
+  const readSources = (paths) => Promise.all(paths.map((path) => readFile(new URL(path, import.meta.url), 'utf8')))
+    .then((sources) => sources.join('\n'));
+  const formSource = await readSources([
+    '../../src/features/lead-capture/AuditForm.jsx',
+    '../../src/features/lead-capture/useAuditForm.js',
+  ]);
+  const thankYouSource = await readSources([
+    '../../src/pages/thank-you/ThankYouPage.jsx',
+    '../../src/features/lead-capture/AuditDetailsSection.jsx',
+    '../../src/features/lead-capture/useAuditDetails.js',
+  ]);
 
-  assert.match(source, /status === 'submitting'/);
-  assert.match(source, /status === 'success'/);
-  assert.match(source, /status === 'error'/);
-  assert.match(source, /LEAD_FUNNEL_CONFIG\.bookingCalendarUrl/);
-  assert.match(source, /<LegalConsent/);
-  assert.match(source, /Continue on WhatsApp|Contact us on WhatsApp instead/);
-  assert.doesNotMatch(source, /console\./);
+  assert.match(formSource, /status === 'submitting'/);
+  assert.match(formSource, /status === 'success'/);
+  assert.match(formSource, /status === 'error'/);
+  assert.match(formSource, /saveThankYouHandoff\(/);
+  assert.match(formSource, /location\?\.assign\(THANK_YOU_ROUTE\)/);
+  assert.match(formSource, /<LegalConsent/);
+  assert.match(formSource, /Contact us on WhatsApp instead/);
+  assert.match(thankYouSource, /readThankYouHandoff\(/);
+  assert.match(thankYouSource, /status === 'sent'/);
+  assert.match(thankYouSource, /status === 'skipped'/);
+  assert.match(thankYouSource, /LEAD_FUNNEL_CONFIG\.bookingCalendarUrl/);
+  assert.match(thankYouSource, /Chat on WhatsApp/);
+  assert.match(thankYouSource, /Thanks for getting in touch/);
+  for (const source of [formSource, thankYouSource]) assert.doesNotMatch(source, /console\./);
 });
 
-test('source contains one canonical lead form and one local calculator form', async () => {
+test('source contains the audit form, the optional Step 2 form and one local calculator form', async () => {
   const componentsUrl = new URL('../../src/', import.meta.url);
   const entries = await readdir(componentsUrl, { recursive: true });
   const jsxFiles = entries.filter((entry) => entry.endsWith('.jsx'));
@@ -61,8 +79,9 @@ test('source contains one canonical lead form and one local calculator form', as
     0,
   );
 
-  assert.equal(formCount, 2);
+  assert.equal(formCount, 3);
   assert.deepEqual(jsxFiles.filter((_, index) => /<form\b/.test(sources[index])).sort(), [
+    'features/lead-capture/AuditDetailsSection.jsx',
     'features/lead-capture/AuditForm.jsx',
     'features/roi-calculator/ROICalculator.jsx',
   ]);

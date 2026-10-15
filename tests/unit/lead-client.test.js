@@ -4,8 +4,8 @@ import { LeadSubmissionError, submitLeadRequest } from '../../src/features/lead-
 
 const payload = {
   name: 'A Seller',
-  contactMethod: 'email',
-  contact: 'seller@example.com',
+  email: 'seller@example.com',
+  whatsapp: '+91 98765 43210',
   revenueCurrency: 'USD',
   monthlyRevenue: '10k-50k',
 };

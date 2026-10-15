@@ -1,5 +1,5 @@
 import { BRAND } from '../../shared/brand.js';
-import { CONTACT_METHODS, getRevenueShortLabel } from '../../shared/leadSchema.js';
+import { getRevenueShortLabel } from '../../shared/leadSchema.js';
 
 // Table-based, inline-styled HTML so the emails render in Gmail, Outlook and Apple Mail.
 const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
@@ -24,8 +24,11 @@ export const formatReceivedAt = (receivedAt) => `${new Intl.DateTimeFormat('en-I
 
 const FORM_LOCATIONS = { hero: 'Homepage — hero form', contact_page: 'Contact page form' };
 const formLabel = (formLocation) => FORM_LOCATIONS[formLocation] || 'Website audit form';
-const viaWhatsApp = (lead) => lead.contactMethod === CONTACT_METHODS.whatsapp;
-const channelLabel = (lead) => (viaWhatsApp(lead) ? 'WhatsApp' : 'Email');
+// Both contacts are required; leads from pages loaded before that change may carry only one.
+const contactSummary = (lead) => [
+  lead.whatsapp ? `WhatsApp ${singleLine(lead.whatsapp)}` : '',
+  lead.email ? `email ${lead.email}` : '',
+].filter(Boolean).join(' or ');
 
 const page = ({ title, preheader, rows }) => `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>${escapeHtml(title)}</title></head>
@@ -62,15 +65,16 @@ ${rows.map(([label, value], index) => `<tr style="background:${index % 2 ? C.whi
 
 const footer = (lines) => `<tr><td style="background:${C.gray50};padding:18px 32px;font-size:12px;line-height:18px;color:${C.gray500};">${lines.join('<br>')}</td></tr>`;
 
-const contactActions = (lead) => (viaWhatsApp(lead)
-  ? button(`https://wa.me/${digitsOnly(lead.contact)}`, 'Chat on WhatsApp', { background: C.whatsapp, color: C.white })
-    + button(`tel:+${digitsOnly(lead.contact)}`, `Call ${singleLine(lead.contact)}`, { background: C.white, color: C.charcoal, border: C.gray200 })
-  : button(`mailto:${lead.contact}?subject=${encodeURIComponent(`Your free Amazon audit — ${BRAND.name}`)}`, 'Reply by email', { background: C.gold, color: C.charcoal }));
+const contactActions = (lead) => [
+  lead.whatsapp ? button(`https://wa.me/${digitsOnly(lead.whatsapp)}`, 'Chat on WhatsApp', { background: C.whatsapp, color: C.white }) : '',
+  lead.whatsapp ? button(`tel:+${digitsOnly(lead.whatsapp)}`, `Call ${singleLine(lead.whatsapp)}`, { background: C.white, color: C.charcoal, border: C.gray200 }) : '',
+  lead.email ? button(`mailto:${lead.email}?subject=${encodeURIComponent(`Your free Amazon audit — ${BRAND.name}`)}`, 'Reply by email', { background: C.gold, color: C.charcoal }) : '',
+].join('');
 
 const leadRows = (lead) => [
   ['Name', singleLine(lead.name)],
-  ['Contact via', channelLabel(lead)],
-  [channelLabel(lead), singleLine(lead.contact)],
+  ...(lead.email ? [['Email', lead.email]] : []),
+  ...(lead.whatsapp ? [['WhatsApp', singleLine(lead.whatsapp)]] : []),
   ...(lead.monthlyAmazonRevenueRangeLabel
     ? [['Monthly revenue', `${lead.monthlyAmazonRevenueRangeLabel} (${lead.monthlyAmazonRevenueCurrency})`]]
     : []),
@@ -94,8 +98,8 @@ const textBlock = (rows) => rows.map(([label, value]) => `${label}: ${value}`).j
 export const renderLeadAlert = (lead, { logoUrl } = {}) => {
   const name = singleLine(lead.name);
   const band = getRevenueShortLabel(lead.monthlyAmazonRevenueCurrency, lead.monthlyAmazonRevenueRange);
-  const subject = ['New audit lead: ' + name, band, channelLabel(lead)].filter(Boolean).join(' · ');
-  const preheader = `Prefers ${channelLabel(lead)} · ${singleLine(lead.contact)} · ${formatReceivedAt(lead.receivedAt)}`;
+  const subject = ['New audit lead: ' + name, band].filter(Boolean).join(' · ');
+  const preheader = [singleLine(lead.whatsapp), lead.email, formatReceivedAt(lead.receivedAt)].filter(Boolean).join(' · ');
   const rows = leadRows(lead);
 
   const html = page({
@@ -106,7 +110,7 @@ export const renderLeadAlert = (lead, { logoUrl } = {}) => {
       `<tr><td style="padding:28px 32px 8px;">
 ${eyebrow('FREE AMAZON AUDIT REQUEST')}
 <p style="margin:0 0 10px;font-size:26px;line-height:32px;font-weight:700;color:${C.charcoal};">${escapeHtml(name)}${band ? ` <span style="display:inline-block;vertical-align:middle;background:${C.gold100};color:${C.gold900};font-size:12px;line-height:16px;font-weight:700;padding:5px 10px;border-radius:999px;">${escapeHtml(band)}</span>` : ''}</p>
-<p style="margin:0 0 18px;font-size:14px;line-height:21px;color:${C.gray600};">Submitted ${escapeHtml(formatReceivedAt(lead.receivedAt))} from the ${escapeHtml(formLabel(lead.formLocation).toLowerCase())}. They prefer to be contacted on ${escapeHtml(channelLabel(lead))}.</p>
+<p style="margin:0 0 18px;font-size:14px;line-height:21px;color:${C.gray600};">Submitted ${escapeHtml(formatReceivedAt(lead.receivedAt))} from the ${escapeHtml(formLabel(lead.formLocation).toLowerCase())}. Reach them on ${escapeHtml(contactSummary(lead))}.</p>
 <div style="margin:0 0 10px;">${contactActions(lead)}</div>
 ${detailsTable(rows)}
 ${eyebrow('AUDIT DETAILS (STEP 2)', C.gray500)}
@@ -114,7 +118,7 @@ ${eyebrow('AUDIT DETAILS (STEP 2)', C.gray500)}
 </td></tr>`,
       footer([
         `Sent automatically by the lead form on ${escapeHtml(BRAND.canonicalOrigin.replace('https://', ''))}.`,
-        viaWhatsApp(lead) ? 'Tap “Chat on WhatsApp” to message the lead directly.' : 'Just hit Reply — it goes straight to the visitor.',
+        lead.email ? 'Tap “Chat on WhatsApp”, or just hit Reply — it goes straight to the visitor.' : 'Tap “Chat on WhatsApp” to message the lead directly.',
       ]),
     ],
   });
@@ -124,7 +128,8 @@ ${eyebrow('AUDIT DETAILS (STEP 2)', C.gray500)}
     '',
     textBlock(rows),
     '',
-    viaWhatsApp(lead) ? `Chat on WhatsApp: https://wa.me/${digitsOnly(lead.contact)}` : `Reply to this email to answer ${firstName(name)}.`,
+    lead.whatsapp ? `Chat on WhatsApp: https://wa.me/${digitsOnly(lead.whatsapp)}` : '',
+    lead.email ? `Reply to this email to answer ${firstName(name)}.` : '',
     'Audit details (Step 2): not provided yet.',
   ].join('\n');
 
@@ -144,14 +149,14 @@ export const renderDetailsAlert = (details, described, { logoUrl } = {}) => {
       `<tr><td style="padding:28px 32px 8px;">
 ${eyebrow('STEP 2 · AUDIT DETAILS ADDED')}
 <p style="margin:0 0 10px;font-size:26px;line-height:32px;font-weight:700;color:${C.charcoal};">${escapeHtml(name)}</p>
-<p style="margin:0 0 18px;font-size:14px;line-height:21px;color:${C.gray600};">Added to lead ${escapeHtml(details.leadId)}. Contact via ${escapeHtml(channelLabel(details))}: ${escapeHtml(singleLine(details.contact))}.</p>
+<p style="margin:0 0 18px;font-size:14px;line-height:21px;color:${C.gray600};">Added to lead ${escapeHtml(details.leadId)}. Reach them on ${escapeHtml(contactSummary(details))}.</p>
 <div style="margin:0 0 10px;">${contactActions(details)}</div>
 ${detailsTable(rows)}
 </td></tr>`,
       footer([`Sent automatically by the lead form on ${escapeHtml(BRAND.canonicalOrigin.replace('https://', ''))}.`]),
     ],
   });
-  const text = [`Audit details added for ${name} (${details.leadId})`, `Contact via ${channelLabel(details)}: ${singleLine(details.contact)}`, '', textBlock(rows)].join('\n');
+  const text = [`Audit details added for ${name} (${details.leadId})`, `Reach them on ${contactSummary(details)}.`, '', textBlock(rows)].join('\n');
   return { subject, html, text };
 };
 
@@ -165,7 +170,7 @@ export const renderVisitorConfirmation = (lead, { logoUrl } = {}) => {
   const steps = [
     ['1', 'We review your Amazon account', 'PPC, listings, rankings and account health.'],
     ['2', 'We prepare your audit findings', 'Clear priorities and quick wins for your store.'],
-    ['3', 'We reach out by email', 'To walk you through the findings — no obligation.'],
+    ['3', lead.whatsapp ? 'We reach out on WhatsApp' : 'We reply by email', 'To walk you through the findings — no obligation.'],
   ];
 
   const html = page({
@@ -180,7 +185,7 @@ export const renderVisitorConfirmation = (lead, { logoUrl } = {}) => {
       `<tr><td style="background:${C.gold50};padding:28px 32px;">
 <div style="width:48px;height:48px;line-height:48px;border-radius:999px;background:${C.gold};color:${C.charcoal};font-size:24px;font-weight:800;text-align:center;margin:0 0 14px;">&#10003;</div>
 <p style="margin:0 0 10px;font-size:24px;line-height:30px;font-weight:700;color:${C.charcoal};">Thanks, ${escapeHtml(first)} — we’ve got your request.</p>
-<p style="margin:0;font-size:15px;line-height:23px;color:${C.gray700};">Our team will review your Amazon account and get back to you by email at <strong>${escapeHtml(lead.contact)}</strong>.</p>
+<p style="margin:0;font-size:15px;line-height:23px;color:${C.gray700};">Our team will review your Amazon account and get back to you${lead.whatsapp ? ` on WhatsApp at <strong>${escapeHtml(singleLine(lead.whatsapp))}</strong> and` : ''} by email at <strong>${escapeHtml(lead.email)}</strong>.</p>
 </td></tr>`,
       `<tr><td style="padding:28px 32px 8px;">
 ${eyebrow('WHAT HAPPENS NEXT', C.gray500)}
@@ -206,7 +211,7 @@ ${button(storeMail, 'Email us your store link', { background: C.gold, color: C.c
 
   const text = [
     `Thanks, ${first} — we’ve got your request.`,
-    `Our team will review your Amazon account and get back to you by email at ${lead.contact}.`,
+    `Our team will review your Amazon account and get back to you${lead.whatsapp ? ` on WhatsApp at ${singleLine(lead.whatsapp)} and` : ''} by email at ${lead.email}.`,
     '',
     'What happens next:',
     ...steps.map(([number, title, desc]) => `${number}. ${title} — ${desc}`),

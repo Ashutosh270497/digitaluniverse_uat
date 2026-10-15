@@ -141,7 +141,7 @@ Business metrics and non-metric credentials are inventoried in:
 
 - `src/features/lead-capture/AuditForm.jsx` is the one canonical free-audit form, reused on the home and contact pages. `useAuditForm.js` owns its state, validation, focus, and submission flow.
 - The four requested lead fields are validated in the browser and again by `api/leads.js` through `server/leads/leadSubmission.js`, using the common `shared/leadSchema.js` contract.
-- After delivery, a celebratory success screen offers an optional Step 2 (store link, marketplaces, seller type, ad spend, challenges, notes) that is sent as a follow-up with the same lead ID. Lead alert and visitor confirmation emails are rendered by `server/leads/leadEmails.js`.
+- The form requires both an email address and a WhatsApp number. After delivery the browser moves to the separate `/thank-you` page (`src/pages/thank-you/ThankYouPage.jsx`), handing the lead over in `sessionStorage` rather than the URL. That page celebrates, confirms both contacts and offers an optional Step 2 (store link, marketplaces, seller type, ad spend, challenges, notes) that is sent as a follow-up with the same lead ID. Lead alert and visitor confirmation emails are rendered by `server/leads/leadEmails.js`.
 - The browser submits JSON with `POST`; lead values are never placed in a URL.
 - Delivery is intentionally unconfigured until at least one server channel is set: a Resend email alert or an approved HTTPS CRM/webhook (`LEAD_WEBHOOK_URL`).
 - The UI shows success only after the destination acknowledges delivery. Missing configuration, network errors, and upstream failures remain visible failures.

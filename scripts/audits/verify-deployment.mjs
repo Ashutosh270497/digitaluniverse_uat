@@ -39,4 +39,9 @@ for (const file of await readdir(dist, { recursive: true })) {
 }
 assert.equal(await readFile(new URL('.htaccess', dist), 'utf8'),
   await readFile(new URL('public/.htaccess', root), 'utf8'));
+
+// Old links to the static status page land on the React confirmation page on both hosts.
+assert.equal(config.redirects.find(({ source }) => source === '/thank-you.html')?.destination, '/thank-you');
+assert.match(await readFile(new URL('public/.htaccess', root), 'utf8'), /^RewriteRule \^thank-you\\\.html\$ \/thank-you \[R=301,L,NE\]$/m);
+await assert.rejects(access(new URL('thank-you.html', dist)), 'A static thank-you.html would shadow /thank-you on some hosts');
 console.log(`Deployment verification passed: ${SEO_ROUTES.length} entries, Vercel routing, preview noindex, root assets and Apache configuration.`);

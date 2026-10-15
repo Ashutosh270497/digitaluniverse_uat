@@ -13,7 +13,7 @@ configured channel at the same time:
 | Email alert | [Resend](https://resend.com) email API (free plan: 3,000 emails/month, 100/day) | `RESEND_API_KEY`, `LEAD_EMAIL_TO`, optional `LEAD_EMAIL_FROM` |
 | CRM/automation | Any approved HTTPS webhook that accepts the JSON payload below | `LEAD_WEBHOOK_URL`, optional `LEAD_WEBHOOK_BEARER_TOKEN` |
 
-The form shows success when at least one channel confirms delivery. A channel
+The form continues to the `/thank-you` page when at least one channel confirms delivery. A channel
 that fails is logged by name and HTTP status only, without lead values. When no
 channel is configured, the API returns HTTP 503 and the form displays a delivery
 error; it never displays false success.
@@ -29,19 +29,21 @@ the Resend account's own email address; any other recipient is rejected with
 HTTP 403. To send from an address such as `leads@digitaluniversepro.co`, or to
 other recipients, verify the domain in Resend (DNS records in GoDaddy) and set
 `LEAD_EMAIL_FROM`, for example `Digital Universe <leads@digitaluniversepro.co>`.
-Email leads set Reply-To to the visitor's address. Leads that chose WhatsApp
-include “Chat on WhatsApp” (`wa.me`) and “Call” buttons.
+Every alert sets Reply-To to the visitor's email address and includes “Chat on
+WhatsApp” (`wa.me`), “Call” and “Reply by email” buttons.
 
 Alerts are branded, table-based HTML emails with a plain-text version
-(`server/leads/leadEmails.js`, no extra dependencies). The subject and preview
-line carry the name, a compact revenue band and the preferred channel. Every
+(`server/leads/leadEmails.js`, no extra dependencies). The subject carries the
+name and a compact revenue band; the preview line carries the WhatsApp number,
+email address and receipt time. Every
 visitor-supplied value is HTML-escaped. The header logo loads from the site that
 received the form (`/brand/digital-universe-logo.jpg`).
 
 ### Visitor confirmation email (optional)
 
-Leads that chose email can also receive a branded confirmation. It is sent only
-after the business alert is confirmed, never for WhatsApp leads, and only when
+Every lead can also receive a branded confirmation at their email address,
+naming the WhatsApp number the team will use. It is sent only after the business
+alert is confirmed, and only when
 `LEAD_CONFIRMATION_FROM` is set to a sender on a domain verified in Resend (for
 example `Digital Universe <hello@mail.digitaluniversepro.co>`). Replies go to
 `LEAD_CONFIRMATION_REPLY_TO` (default `support@digitaluniversepro.co`). A failed
@@ -72,7 +74,7 @@ See [deployment steps](deployment.md) for Vercel and GoDaddy setup.
 | `LEAD_WEBHOOK_URL` | Server only | Optional CRM/automation channel. Approved HTTPS webhook destination. |
 | `LEAD_ALLOWED_ORIGINS` | Server only | Required for a separate API origin. Comma-separated website origins permitted to POST. |
 | `VITE_LEAD_API_URL` | Browser/public | Required on static hosting or when the API uses another origin. Omit for a same-origin `/api/leads` deployment. |
-| `VITE_BOOKING_CALENDAR_URL` | Browser/public | Required before the success screen can offer calendar booking. Must be the verified public HTTPS calendar URL. |
+| `VITE_BOOKING_CALENDAR_URL` | Browser/public | Required before the thank-you page can offer calendar booking after Step 2. Must be the verified public HTTPS calendar URL. |
 | `LEAD_WEBHOOK_BEARER_TOKEN` | Server only | Optional, depending on destination authentication. Never expose it with a `VITE_` prefix. |
 | `LEAD_RATE_LIMIT_SALT` | Server only | Recommended stable random value used to hash rate-limit IP keys. An ephemeral process salt is used when absent. |
 | `LEAD_RATE_LIMIT_MAX` | Server only | Optional. Defaults to 5 attempts. |
@@ -84,7 +86,7 @@ platform's secret/environment settings or an ignored local environment file.
 
 ## Lead payload
 
-The webhook channel receives a JSON POST containing the fields below. Email alerts contain the name, contact, revenue label and receipt time (IST) as readable text:
+The webhook channel receives a JSON POST containing the fields below. Email alerts contain the name, both contacts, revenue label and receipt time (IST) as readable text:
 
 - `source`
 - `stage` (`lead`)
@@ -92,14 +94,14 @@ The webhook channel receives a JSON POST containing the fields below. Email aler
 - `leadId` (for example `DU-20261014-7K3P`: IST date plus a random suffix)
 - `formLocation` (`hero`, `contact_page` or `unspecified`)
 - `name`
-- `contactMethod` (`email` or `whatsapp`)
-- `contact`
+- `email`
+- `whatsapp` (international format, for example `+91 97924 20796`)
 - `monthlyAmazonRevenueRange`
 - `monthlyAmazonRevenueCurrency` (`USD`, `INR` or `GBP`)
 - `monthlyAmazonRevenueRangeLabel` (the localized range shown in the form)
 
 Optional Step 2 answers arrive as a separate POST with `stage: "details"`, the
-same `leadId`, the visitor's name and contact, `storeUrl`, `marketplaces`,
+same `leadId`, the visitor's name, `email` and `whatsapp`, `storeUrl`, `marketplaces`,
 `sellerType`, `monthlyAdSpendRange`/`Currency`/`RangeLabel`, `challenges` and
 `notes`. The email channel sends a follow-up alert titled
 “Audit details added: <name> (<lead ID>)”.
@@ -110,7 +112,8 @@ are never forwarded. The application contains no lead-value logging.
 ## Validation and abuse controls
 
 - The client and server use the same field schema.
-- Email and WhatsApp formats are validated according to the selected contact method.
+- Email and WhatsApp number are both required and validated separately.
+- Requests from pages loaded before both contacts became required (`contactMethod` plus a single `contact`) are still accepted and normalized to `email` or `whatsapp`, so a cached page never loses a lead.
 - Step 1 does not collect an Amazon URL; retired `amazonUrl` payload values are ignored and never forwarded. The store link or ASIN is an optional Step 2 answer.
 - Step 2 requires a valid lead ID, the Step 1 identity and at least one answer. Marketplaces, seller type, challenges and the ad-spend range must come from the published lists; the store link is limited to 300 characters and notes to 1,000.
 - The WhatsApp number is entered with a country-code picker (default +91); a number typed with its own `+` code is used as typed.
@@ -131,14 +134,17 @@ with a shared rate-limit service before high-volume traffic.
 
 ## Success flow
 
-1. The browser validates name, contact method/contact, revenue currency and the matching revenue range.
+1. The browser validates name, email, WhatsApp number, revenue currency and the matching revenue range.
 2. The browser sends JSON to the lead API using POST.
 3. The server repeats validation and applies origin, spam, size, and rate-limit checks.
 4. The server assigns a lead ID and sends the normalized lead to every configured channel (email, webhook) in parallel.
 5. Only an acknowledged response from at least one channel produces `{ "delivered": true, "leadId": "…" }`.
-6. The success screen celebrates (CSS animation plus a short `canvas-confetti` burst, loaded only on success and skipped for reduced motion), greets the visitor by first name and lists what happens next.
-7. When a lead ID was returned, the visitor can open the optional Step 2 or continue on WhatsApp with a pre-filled message that includes the lead ID.
-8. Sending or skipping Step 2 ends on an “All set” screen that plays back the shared details. A booking action appears there only when `VITE_BOOKING_CALENDAR_URL` is a valid HTTPS URL.
+6. The browser stores the visitor's name, contacts, lead ID and revenue currency in this tab's `sessionStorage` (`du:audit-request`, valid for 12 hours) and navigates to `/thank-you`. No personal data is put in the URL.
+7. `/thank-you` celebrates (CSS animation plus a short `canvas-confetti` burst, skipped for reduced motion), greets the visitor by first name, confirms both contacts and the request ID, and lists what happens next.
+8. When a lead ID was returned, the page offers the optional Step 2 form (“Help us prepare your audit”) and WhatsApp with a pre-filled message that includes the lead ID. Sending Step 2 plays back the shared details; a booking action appears there only when `VITE_BOOKING_CALENDAR_URL` is a valid HTTPS URL.
+9. Opened directly, or after the hand-off expires, `/thank-you` shows a generic “Thanks for getting in touch” page with the audit form link and WhatsApp. The page is `noindex`.
+
+The legacy `/thank-you.html` URL redirects to `/thank-you` on Vercel (`vercel.json`) and Apache (`public/.htaccess`).
 
 ## Failure flow
 
@@ -146,8 +152,8 @@ with a shared rate-limit service before high-volume traffic.
 - Server validation returns HTTP 422 with field errors.
 - Rate limiting returns HTTP 429 with `Retry-After`.
 - Missing destination configuration returns HTTP 503.
-- Network, timeout, or webhook rejection returns a visible failure and never switches the UI to success.
-- Every failure state offers WhatsApp as a secondary route.
+- Network, timeout, or webhook rejection returns a visible failure, stays on the form and never navigates to `/thank-you`.
+- A delivery failure offers “Contact us on WhatsApp instead” as a secondary route.
 
 ## Manual end-to-end test
 
@@ -155,12 +161,12 @@ with a shared rate-limit service before high-volume traffic.
 2. Configure server variables in a staging serverless/API environment. Do not put the webhook token in a `VITE_` variable.
 3. If the API is separate, set `VITE_LEAD_API_URL` and add the website origin to `LEAD_ALLOWED_ORIGINS`.
 4. Build and serve the website against that staging API.
-5. Submit with every field empty; confirm errors for Name, Contact and Revenue range (USD is initially selected) and focus on Name.
-6. Enter an invalid work email; confirm the contact error remains associated with the field.
+5. Submit with every field empty; confirm errors for Name, Email, WhatsApp number and Revenue range (USD is initially selected) and focus on Name.
+6. Enter an invalid email; confirm the error remains associated with the Email field. Clear the WhatsApp number; confirm it is required.
 7. Switch between USD, INR and GBP; confirm the options update, a monetary selection clears, and each submitted currency/range pair reaches the email alert with its localized label.
-8. Select WhatsApp, enter a valid number with country code, and submit with the Enter key.
+8. Enter a valid email and WhatsApp number, and submit with the Enter key.
 9. Temporarily set invalid keys for every channel; confirm the form shows failure and no receipt confirmation, and that Vercel logs name each failed channel.
-10. Restore the keys and submit a unique valid lead; confirm exactly one email arrives and the success screen appears.
+10. Restore the keys and submit a unique valid lead; confirm exactly one email arrives (with both contacts) and the browser lands on `/thank-you` with your name, contacts and request ID. Send Step 2 and confirm the follow-up email.
 11. Confirm the real calendar link and WhatsApp link open the intended destinations.
 12. Submit more than the configured limit from one test IP; confirm HTTP 429 and no upstream delivery.
 13. Test Privacy Policy and Terms links with mouse and keyboard.

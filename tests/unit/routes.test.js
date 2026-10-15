@@ -14,6 +14,7 @@ import {
   MARKETING_ROUTES,
   normalizePathname,
   resolveSiteRoute,
+  THANK_YOU_ROUTE,
 } from '../../src/config/routes.js';
 
 test('defines each canonical legal route without placeholder links', () => {
@@ -79,6 +80,12 @@ test('distinguishes the homepage from unknown paths', () => {
   assert.equal(normalizePathname('/index.html'), '/');
   assert.deepEqual(resolveSiteRoute('/'), { type: 'home' });
   assert.deepEqual(resolveSiteRoute('/missing-page'), { type: 'not-found', path: '/missing-page' });
+});
+
+test('resolves the post-submission thank-you page', () => {
+  assert.equal(THANK_YOU_ROUTE, '/thank-you');
+  assert.deepEqual(resolveSiteRoute('/thank-you'), { type: 'thank-you' });
+  assert.deepEqual(resolveSiteRoute('/thank-you/'), { type: 'thank-you' });
 });
 
 test('resolves every search-intent marketing route with or without a trailing slash', () => {

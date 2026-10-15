@@ -11,8 +11,8 @@ import { composeWhatsAppNumber } from '../../src/features/lead-capture/dialCodes
 const base = {
   leadId: 'DU-20261014-AB2C',
   name: 'A Seller',
-  contactMethod: 'email',
-  contact: 'seller@example.com',
+  email: 'seller@example.com',
+  whatsapp: '+91 98765 43210',
   revenueCurrency: 'INR',
 };
 
@@ -33,7 +33,8 @@ test('Step 2 accepts any single optional answer and normalises lists', () => {
 });
 
 test('Step 2 rejects missing identity, empty submissions and oversized notes', () => {
-  assert.ok(validateLeadDetailsPayload({ ...base, contact: 'nope', notes: 'x' }).errors.contact);
+  assert.ok(validateLeadDetailsPayload({ ...base, email: 'nope', notes: 'x' }).errors.email);
+  assert.ok(validateLeadDetailsPayload({ ...base, whatsapp: '', notes: 'x' }).errors.whatsapp);
   assert.ok(validateLeadDetailsPayload({ ...base, name: '', notes: 'x' }).errors.name);
   assert.equal(validateLeadDetailsPayload(base).errors.details, 'Share at least one detail, or skip this step.');
   assert.ok(validateLeadDetailsPayload({ ...base, notes: 'x'.repeat(1001) }).errors.notes);

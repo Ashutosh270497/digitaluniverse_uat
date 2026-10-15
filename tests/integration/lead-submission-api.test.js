@@ -9,8 +9,8 @@ import {
 const NOW = 1_800_000_000_000;
 const validBody = {
   name: 'A Seller',
-  contactMethod: 'email',
-  contact: 'seller@example.com',
+  email: 'seller@example.com',
+  whatsapp: '+44 7700 900123',
   revenueCurrency: 'USD',
   monthlyRevenue: '50k-200k',
   website: '',
@@ -113,13 +113,23 @@ test('server rejects an empty submission', async () => {
 
 test('server rejects an invalid email', async () => {
   const result = await handleLeadSubmission(
-    createRequest({ ...validBody, contact: 'not-an-email' }),
+    createRequest({ ...validBody, email: 'not-an-email' }),
     { env: configuredEnv, now: () => NOW },
   );
 
   assert.equal(result.status, 422);
   assert.equal(result.body.delivered, false);
-  assert.equal(result.body.errors.contact, 'Enter a valid work email.');
+  assert.equal(result.body.errors.email, 'Enter a valid email address, for example you@yourbrand.com.');
+});
+
+test('server requires a WhatsApp number alongside the email', async () => {
+  const result = await handleLeadSubmission(
+    createRequest({ ...validBody, whatsapp: '' }),
+    { env: configuredEnv, now: () => NOW, fetchImpl: () => assert.fail('an incomplete lead must not be delivered') },
+  );
+
+  assert.equal(result.status, 422);
+  assert.equal(result.body.errors.whatsapp, 'Enter your WhatsApp number, including the country code.');
 });
 
 test('server rejects an invalid currency', async () => {
@@ -163,7 +173,10 @@ test('successful submission POSTs JSON and confirms acknowledged delivery', asyn
   assert.equal(webhookCall.options.headers.Authorization, 'Bearer test-token');
 
   const payload = JSON.parse(webhookCall.options.body);
-  assert.equal(payload.contact, validBody.contact);
+  assert.equal(payload.email, validBody.email);
+  assert.equal(payload.whatsapp, validBody.whatsapp);
+  assert.equal('contact' in payload, false);
+  assert.equal('contactMethod' in payload, false);
   assert.equal('amazonStoreOrAsinUrl' in payload, false);
   assert.equal(payload.monthlyAmazonRevenueCurrency, 'USD');
   assert.equal(payload.monthlyAmazonRevenueRangeLabel, '$50,000–$200,000');
@@ -322,28 +335,34 @@ test('email alert receives a branded lead email with a lead ID', async () => {
   assert.equal(email.options.headers.Authorization, 'Bearer re_test_key');
   assert.equal(email.body.from, 'Digital Universe Leads <onboarding@resend.dev>');
   assert.deepEqual(email.body.to, ['owner@example.com']);
-  assert.equal(email.body.reply_to, validBody.contact);
-  assert.equal(email.body.subject, 'New audit lead: A Seller · $50K–$200K/mo · Email');
+  assert.equal(email.body.reply_to, validBody.email);
+  assert.equal(email.body.subject, 'New audit lead: A Seller · $50K–$200K/mo');
   assert.match(email.body.html, /<!doctype html>/);
   assert.match(email.body.html, /Homepage — hero form/);
   assert.match(email.body.html, new RegExp(result.body.leadId));
   assert.match(email.body.html, /Reply by email/);
+  assert.match(email.body.html, /href="https:\/\/wa\.me\/447700900123"/);
+  assert.match(email.body.html, /href="tel:\+447700900123"/);
+  assert.match(email.body.text, /Email: seller@example\.com/);
+  assert.match(email.body.text, /WhatsApp: \+44 7700 900123/);
   assert.match(email.body.text, /Monthly revenue: \$50,000–\$200,000 \(USD\)/);
   assert.match(email.body.text, /Submitted: 15 Jan 2027.*IST/);
   assert.match(email.body.html, /https:\/\/digitaluniversepro\.co\/brand\/digital-universe-logo\.jpg/);
 });
 
-test('WhatsApp leads get chat and call actions and no email reply-to', async () => {
+test('legacy single-contact WhatsApp leads still get chat and call actions and no email reply-to', async () => {
   const { calls, fetchImpl } = captureCalls();
-  const body = { ...validBody, contactMethod: 'whatsapp', contact: '+44 7700 900123', revenueCurrency: 'INR', monthlyRevenue: '1l-5l' };
+  const { email: _email, whatsapp: _whatsapp, ...legacyBase } = validBody;
+  const body = { ...legacyBase, contactMethod: 'whatsapp', contact: '+44 7700 900123', revenueCurrency: 'INR', monthlyRevenue: '1l-5l' };
   const result = await handleLeadSubmission(createRequest(body), { env: notificationEnv, now: () => NOW, fetchImpl });
 
   assert.equal(result.status, 200);
   const email = calls.find(({ url }) => isEmailCall(url)).body;
   assert.equal('reply_to' in email, false);
-  assert.equal(email.subject, 'New audit lead: A Seller · ₹1L–₹5L/mo · WhatsApp');
+  assert.equal(email.subject, 'New audit lead: A Seller · ₹1L–₹5L/mo');
   assert.match(email.html, /href="https:\/\/wa\.me\/447700900123"/);
   assert.match(email.html, /href="tel:\+447700900123"/);
+  assert.doesNotMatch(email.html, /Reply by email/);
   assert.match(email.text, /Monthly revenue: ₹1,00,000–₹5,00,000 \(INR\)/);
 });
 
@@ -358,7 +377,7 @@ test('visitor-supplied text is HTML-escaped in emails', async () => {
   assert.match(email.html, /&lt;img src=x onerror=alert\(1\)&gt; Seller/);
 });
 
-test('the visitor confirmation goes only to email leads once a verified sender is configured', async () => {
+test('the visitor confirmation goes to every lead with an email once a verified sender is configured', async () => {
   const confirmationEnv = { ...notificationEnv, LEAD_CONFIRMATION_FROM: 'Digital Universe <hello@mail.digitaluniversepro.co>' };
 
   const withoutSender = captureCalls();
@@ -371,18 +390,21 @@ test('the visitor confirmation goes only to email leads once a verified sender i
   assert.equal(result.status, 200);
   assert.equal(emailLead.calls.length, 2);
   const confirmation = emailLead.calls[1].body;
-  assert.deepEqual(confirmation.to, [validBody.contact]);
+  assert.deepEqual(confirmation.to, [validBody.email]);
   assert.equal(confirmation.from, 'Digital Universe <hello@mail.digitaluniversepro.co>');
   assert.equal(confirmation.reply_to, 'support@digitaluniversepro.co');
   assert.equal(confirmation.subject, 'Your free Amazon audit request is confirmed');
   assert.match(confirmation.html, /Thanks, A — we’ve got your request\./);
+  assert.match(confirmation.text, /on WhatsApp at \+44 7700 900123 and by email at seller@example\.com/);
+  assert.match(confirmation.text, /3\. We reach out on WhatsApp/);
 
   resetLeadRateLimitsForTests();
   const whatsappLead = captureCalls();
-  await handleLeadSubmission(createRequest({ ...validBody, contactMethod: 'whatsapp', contact: '+919792420796' }), {
+  const { email: _email, whatsapp: _whatsapp, ...legacyBase } = validBody;
+  await handleLeadSubmission(createRequest({ ...legacyBase, contactMethod: 'whatsapp', contact: '+919792420796' }), {
     env: confirmationEnv, now: () => NOW, fetchImpl: whatsappLead.fetchImpl,
   });
-  assert.equal(whatsappLead.calls.length, 1, 'WhatsApp leads have no email address to confirm');
+  assert.equal(whatsappLead.calls.length, 1, 'legacy WhatsApp-only leads have no email address to confirm');
 });
 
 test('a failed visitor confirmation does not fail a delivered lead', async (t) => {
@@ -403,8 +425,8 @@ const detailsBody = {
   stage: 'details',
   leadId: 'DU-20270115-AB2C',
   name: 'A Seller',
-  contactMethod: 'whatsapp',
-  contact: '+919792420796',
+  email: 'seller@example.com',
+  whatsapp: '+919792420796',
   revenueCurrency: 'INR',
   storeUrl: 'amazon.in/stores/YourBrand',
   marketplaces: ['in', 'us'],
@@ -433,6 +455,8 @@ test('Step 2 details are delivered as a follow-up referencing the lead ID', asyn
   const webhook = calls.find(({ url }) => !isEmailCall(url)).body;
   assert.equal(webhook.stage, 'details');
   assert.equal(webhook.leadId, 'DU-20270115-AB2C');
+  assert.equal(webhook.email, 'seller@example.com');
+  assert.equal(webhook.whatsapp, '+919792420796');
   assert.deepEqual(webhook.marketplaces, ['in', 'us']);
   assert.equal(webhook.monthlyAdSpendRangeLabel, '₹50,000–₹2,00,000');
   assert.equal('website' in webhook, false);

@@ -4,6 +4,7 @@ export const CASE_STUDIES_ROUTE = '/case-studies';
 export const CASE_STUDY_TEMPLATE_ROUTE = '/case-studies/template';
 export const AI_SERVICES_ROUTE = '/ai-services';
 export const AMAZON_SPN_ROUTE = '/amazon-spn';
+export const THANK_YOU_ROUTE = '/thank-you';
 
 export const MARKETING_ROUTES = Object.freeze({
   aiServices: Object.freeze({ key: 'aiServices', path: AI_SERVICES_ROUTE, kind: 'ai-services' }),
@@ -130,6 +131,7 @@ export const resolveSiteRoute = (pathname) => {
   if (legalRoute) return { type: 'legal', route: legalRoute };
   if (marketingRoute) return { type: 'marketing', route: marketingRoute };
   if (normalizedPath === HOME_ROUTE) return { type: 'home' };
+  if (normalizedPath === THANK_YOU_ROUTE) return { type: 'thank-you' };
   if (normalizedPath === CASE_STUDIES_ROUTE) return { type: 'case-studies' };
   if (normalizedPath === CASE_STUDY_TEMPLATE_ROUTE) return { type: 'case-study-template' };
   if (caseStudySlug) return { type: 'case-study-detail', slug: caseStudySlug };

@@ -1,6 +1,7 @@
 // Shared Tailwind class sets for the audit form's inputs, single-select options and multi-select chips.
 export const inputClassName = (hasError, { inline = false } = {}) => [
-  inline ? 'min-w-0 flex-1' : 'mt-2 w-full',
+  // w-0 keeps the input's intrinsic width out of narrow (320px) layouts; flex-1 then fills the row.
+  inline ? 'w-0 min-w-0 flex-1' : 'mt-2 w-full',
   'rounded-lg border bg-white px-4 py-3 font-medium text-gray-900 shadow-sm outline-none transition-colors',
   'focus:ring-2 focus:ring-primary-600/30',
   hasError ? 'border-red-600 focus:border-red-600' : 'border-gray-300 focus:border-primary-600',

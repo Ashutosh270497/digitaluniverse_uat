@@ -90,6 +90,16 @@
       "source": "/amazon-spn/index.html",
       "destination": "/amazon-spn",
       "permanent": true
+    },
+    {
+      "source": "/thank-you/index.html",
+      "destination": "/thank-you",
+      "permanent": true
+    },
+    {
+      "source": "/thank-you.html",
+      "destination": "/thank-you",
+      "permanent": true
     }
   ],
   "rewrites": [
@@ -148,6 +158,10 @@
     {
       "source": "/amazon-spn",
       "destination": "/amazon-spn/index.html"
+    },
+    {
+      "source": "/thank-you",
+      "destination": "/thank-you/index.html"
     }
   ],
   "headers": [

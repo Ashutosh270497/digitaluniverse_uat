@@ -8,8 +8,8 @@ import {
 
 const validLead = {
   name: 'A Seller',
-  contactMethod: CONTACT_METHODS.email,
-  contact: 'seller@example.com',
+  email: 'seller@example.com',
+  whatsapp: '+91 98765 43210',
   revenueCurrency: 'USD',
   monthlyRevenue: '10k-50k',
 };
@@ -19,18 +19,39 @@ test('empty submission is rejected with accessible field errors', () => {
 
   assert.equal(result.isValid, false);
   assert.deepEqual(Object.keys(result.errors).sort(), [
-    'contact',
+    'email',
     'monthlyRevenue',
     'name',
     'revenueCurrency',
+    'whatsapp',
   ]);
 });
 
 test('invalid email is rejected', () => {
-  const result = validateLeadPayload({ ...validLead, contact: 'not-an-email' });
+  const result = validateLeadPayload({ ...validLead, email: 'not-an-email' });
 
   assert.equal(result.isValid, false);
-  assert.equal(result.errors.contact, 'Enter a valid work email.');
+  assert.equal(result.errors.email, 'Enter a valid email address, for example you@yourbrand.com.');
+});
+
+test('email and WhatsApp are both required', () => {
+  const withoutWhatsApp = validateLeadPayload({ ...validLead, whatsapp: '' });
+  const withoutEmail = validateLeadPayload({ ...validLead, email: '' });
+
+  assert.equal(withoutWhatsApp.isValid, false);
+  assert.equal(withoutWhatsApp.errors.whatsapp, 'Enter your WhatsApp number, including the country code.');
+  assert.equal(withoutEmail.isValid, false);
+  assert.equal(withoutEmail.errors.email, 'Enter your email address.');
+  assert.ok(validateLeadPayload({ ...validLead, whatsapp: '12' }).errors.whatsapp);
+});
+
+test('valid leads keep both contacts in normalized data', () => {
+  const result = validateLeadPayload({ ...validLead, email: ' seller@example.com ' });
+
+  assert.equal(result.isValid, true);
+  assert.equal(result.data.email, 'seller@example.com');
+  assert.equal(result.data.whatsapp, '+91 98765 43210');
+  assert.equal('contact' in result.data, false);
 });
 
 test('currency must be explicitly selected and supported', () => {
@@ -62,14 +83,16 @@ test('Amazon URL is no longer required or included in normalized lead data', () 
   assert.equal('amazonUrl' in result.data, false);
 });
 
-test('valid WhatsApp contact uses a telephone-compatible value', () => {
-  const result = validateLeadPayload({
-    ...validLead,
-    contactMethod: CONTACT_METHODS.whatsapp,
-    contact: '+91 98765 43210',
-  });
+test('legacy single-contact payloads from cached pages are still accepted', () => {
+  const { email, whatsapp, ...legacyBase } = validLead;
+  const viaEmail = validateLeadPayload({ ...legacyBase, contactMethod: CONTACT_METHODS.email, contact: email });
+  const viaWhatsApp = validateLeadPayload({ ...legacyBase, contactMethod: CONTACT_METHODS.whatsapp, contact: whatsapp });
 
-  assert.equal(result.isValid, true);
+  assert.equal(viaEmail.isValid, true);
+  assert.deepEqual([viaEmail.data.email, viaEmail.data.whatsapp], ['seller@example.com', '']);
+  assert.equal(viaWhatsApp.isValid, true);
+  assert.deepEqual([viaWhatsApp.data.email, viaWhatsApp.data.whatsapp], ['', '+91 98765 43210']);
+  assert.ok(validateLeadPayload({ ...legacyBase, contactMethod: CONTACT_METHODS.email, contact: 'nope' }).errors.email);
 });
 
 test('revenue may be omitted only when the caller explicitly selects the experiment policy', () => {
