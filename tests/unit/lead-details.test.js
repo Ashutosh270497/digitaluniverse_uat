@@ -80,7 +80,7 @@ test('revenue bands have compact labels for subject lines', () => {
 });
 
 test('the WhatsApp number joins the country code unless the visitor typed their own', () => {
-  assert.equal(composeWhatsAppNumber('+91', '97924 20796'), '+91 97924 20796');
+  assert.equal(composeWhatsAppNumber('+91', '98765 43210'), '+91 98765 43210');
   assert.equal(composeWhatsAppNumber('+44', '07700 900123'), '+44 7700 900123');
   assert.equal(composeWhatsAppNumber('+91', '+971 50 123 4567'), '+971 50 123 4567');
   assert.equal(composeWhatsAppNumber('', '+971501234567'), '+971501234567');

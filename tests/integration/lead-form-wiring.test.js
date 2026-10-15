@@ -21,6 +21,8 @@ test('canonical form uses persistent labels, required fields, and accessible err
   assert.match(source, /type="email"[\s\S]*name="email"[\s\S]*autoComplete="email"/);
   assert.match(source, /type="tel"[\s\S]*name="whatsapp"/);
   assert.match(source, /autoComplete="tel-country-code"/);
+  // Placeholders are masked so no real person's number is shown as an example.
+  assert.match(source, /placeholder=\{formData\.dialCode \? 'XXXXX XXXXX' : '\+971 XX XXX XXXX'\}/);
   assert.match(source, /name="revenueCurrency"/);
   assert.match(source, /autoComplete="name"/);
   assert.match(source, /aria-describedby/);

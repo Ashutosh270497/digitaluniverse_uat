@@ -401,7 +401,7 @@ test('the visitor confirmation goes to every lead with an email once a verified 
   resetLeadRateLimitsForTests();
   const whatsappLead = captureCalls();
   const { email: _email, whatsapp: _whatsapp, ...legacyBase } = validBody;
-  await handleLeadSubmission(createRequest({ ...legacyBase, contactMethod: 'whatsapp', contact: '+919792420796' }), {
+  await handleLeadSubmission(createRequest({ ...legacyBase, contactMethod: 'whatsapp', contact: '+919876543210' }), {
     env: confirmationEnv, now: () => NOW, fetchImpl: whatsappLead.fetchImpl,
   });
   assert.equal(whatsappLead.calls.length, 1, 'legacy WhatsApp-only leads have no email address to confirm');
@@ -426,7 +426,7 @@ const detailsBody = {
   leadId: 'DU-20270115-AB2C',
   name: 'A Seller',
   email: 'seller@example.com',
-  whatsapp: '+919792420796',
+  whatsapp: '+919876543210',
   revenueCurrency: 'INR',
   storeUrl: 'amazon.in/stores/YourBrand',
   marketplaces: ['in', 'us'],
@@ -456,7 +456,7 @@ test('Step 2 details are delivered as a follow-up referencing the lead ID', asyn
   assert.equal(webhook.stage, 'details');
   assert.equal(webhook.leadId, 'DU-20270115-AB2C');
   assert.equal(webhook.email, 'seller@example.com');
-  assert.equal(webhook.whatsapp, '+919792420796');
+  assert.equal(webhook.whatsapp, '+919876543210');
   assert.deepEqual(webhook.marketplaces, ['in', 'us']);
   assert.equal(webhook.monthlyAdSpendRangeLabel, '₹50,000–₹2,00,000');
   assert.equal('website' in webhook, false);
