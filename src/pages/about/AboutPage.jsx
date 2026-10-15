@@ -35,7 +35,7 @@ const AboutPage = () => {
             src={expertPhotoSmall}
             srcSet={`${expertPhotoSmall} 600w, ${expertPhotoLarge} 1067w`}
             sizes="(min-width: 1024px) 32vw, 100vw"
-            alt="Gautam Soni, Amazon marketplace strategist"
+            alt="Gautam Soni, Amazon marketplace specialist"
             width="1067"
             height="1600"
             loading="lazy"
